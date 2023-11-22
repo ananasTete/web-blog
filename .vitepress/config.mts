@@ -21,8 +21,17 @@ export default defineConfig({
     sidebar: {
       "/basic/": [{ text: "TS 基础", link: "/basic/ts/ts" }],
       "/framework/": [
-        { text: "React", link: "/framework/react/react" },
-        { text: "Redux", link: "/framework/react/redux" },
+        {
+          text: "React",
+          items: [
+            { text: "React 基础", link: "/framework/react/react" },
+            { text: "React Hooks", link: "/framework/react/react-hooks" },
+          ],
+        },
+        {
+          text: "Redux",
+          items: [{ text: "Redux 基础", link: "/framework/react/redux" }],
+        },
       ],
     },
 
