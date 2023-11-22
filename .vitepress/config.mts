@@ -36,5 +36,9 @@ export default defineConfig({
     },
 
     socialLinks: [{ icon: "github", link: "https://github.com/ananasTete" }],
+
+    outline: {
+      level: [2, 3],
+    },
   },
 });
