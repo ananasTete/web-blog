@@ -6,6 +6,9 @@ hero:
   name: "Hello,"
   text: "李子航的博客"
   tagline: My Web Blog
+  image:
+    src: public/blog.png
+    alt: logo
   actions:
     - theme: brand
       text: Markdown Examples
