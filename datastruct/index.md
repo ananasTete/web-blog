@@ -316,6 +316,41 @@ function leftPad(str, len, ch = ' ') {
 
 后者只需要遍历 n 次
 
+## 回溯算法
+
+没搞明白什么是回溯算法
+
+求数组的所有可能排列：
+
+```js
+function backtrack(nums, temp, list) {
+    if (temp.length === nums.length) {
+        return list.push([...temp]);
+    }
+    for (let i = 0; i < nums.length; i++) {
+        if (temp.includes(nums[i])) {
+            continue;
+        }
+        temp.push(nums[i]);
+        backtrack(nums, temp, list);
+        temp.pop();
+    }
+}
+var permute = function(nums) {
+    const list = [];
+    backtrack(nums, [], list);
+    return list;
+};
+```
+
+如 [1, 2, 3] 过程为 
+
+[1] [1,2] [1,2,3] [1,2] [1,3] [1,3,2] 
+
+[2] [2,1] [2,1,3] [2,1] [2,3] [2,3,2] 
+
+[3] [3,1] [3,1,2] [3,1] [3,2] [3,2,1]
+
 
 ## 交换两个变量的值
 
