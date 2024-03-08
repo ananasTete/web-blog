@@ -146,3 +146,78 @@ useLayoutEffect 是个微任务；useEffect 是个宏任务。
 
 - uselayoutEffect 会在 GUI 渲染之前执行，所以其中不能执行耗时操作如网络请求，否则会阻塞 GUI 渲染。此时真实 DOM 已经构建完成，在这里操作 DOM 的话可以赶在 GUI 渲染之前完成 DOM 更新，如果在 useEffect 中操作 DOM 还要在执行一次 GUI 渲染。 所以在 useLayoutEffect 常结合 useRef 更改 DOM。
 - useEffect 在 GUI 渲染之后可以处理耗时操作
+
+## react 中的闭包陷阱
+
+```jsx
+function App() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    setInterval(() => {
+      console.log(count);
+      setCount(count + 1);
+    }, 1000);
+  }, []);
+}
+```
+
+预期每次打印的都是累加值，但每次打印的都是初始值 0。这是因为 useEffect 没有依赖项，他的回调只会执行一次，setInterval 的回调和 count 就形成了闭包。当 setInterval 回调在此再次执行时，他的作用域链上没有了 useEffect 回调和 App 组件函数，所以 count 的值一直是闭包中的数据： 0。这样的说法对吗？？？
+
+像这样：useEffect 中的依赖项中没有声明回调中使用的外部状态，就会形成闭包陷阱。
+
+如何解决：
+
+方案一： `setCount(count => count++)` 这样没有访问外部变量，就不会形成闭包。
+
+方案二：每次变化重新调用 useEffect 回调。
+
+```jsx
+function App() {
+  const [count, setCount] = useState(0);
+
+  const timer = useRef(0);
+
+  useEffect(() => {
+    clearInterval(timer.current);
+
+    timer.current = setInterval(() => {
+      console.log(count);
+      setCount(count + 1);
+    }, 1000);
+  }, [count]);
+}
+```
+
+闭包：
+
+每次都会打印最新的值，为什么？？？
+
+因为set Interval 回调包含了 a 的引用，a 变了，回调中的 a 也变了。
+
+那为什么上面的例子中，调用了 setCount ，但回调中的 count 没有变呢？？？
+
+因为 react 遵循数据不可变原则，setCount 触发组件更新，会生成一个新的 count ，不是 setInterval 中引用的那个 count，所以回调中的 count 没有变。
+
+```js
+function a() {
+  let a = 1;
+
+  setInterval(() => {
+    a += 100;
+  }, 2000);
+
+  function b() {
+    setInterval(() => {
+      console.log(a);
+    }, 1000);
+  }
+
+  b();
+}
+
+a();
+```
+
+执行上下文、词法环境、作用域链、闭包是什么关系？？？？？
+
