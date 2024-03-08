@@ -16,7 +16,7 @@ const a = <h1>hello</h1>;
 
 但是不能表示 null 或 undefined，所以我们通常使用 `React.ReactNode` 来表示 JSX 元素、null 或 undefined。
 
-![ReactNode的类型声明](../../public/framework/react-node.awebp)
+![ReactNode的类型声明](../../public/framework/react-node.png)
 
 ## 函数组件的类型
 
