@@ -730,7 +730,7 @@ type MyReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
 
 infer 还有其它应用吗？？
 
-函数重载
+函数类型重载
 
 参数索引
 
@@ -929,3 +929,79 @@ type MyPick<T, U extends keyof T> = {
 ```
 
 在这个案例中 ：因为是拆解 T 类型的一部分，所以 U 类型必须是 T 的键的联合类型的子集 `id | content | completed` 。而 `[Key in U]: T[Key]` 则是将需要的部分声明为 T 中对应的类型。
+
+
+## 类型工具
+
+交叉类型：&，取两个类型的交集。
+
+- 如果没有交集，如 `string & number` ，则返回 never 类型。
+- 如果两个类型中有相同的属性，就继续取交集。同样，没有交集就。。。
+- 为了避免两个类型中相同属性的类型不一致，可以使用 `Omit<T, K>` 去除一个类型中的属性，再取交集。
+
+
+omit<T, K> 以一个类型为基础剔除某些属性，返回一个新类型。
+
+```ts
+type Person = {
+    name: string;
+    age: string;
+    location: string;
+};
+
+type PersonWithoutLocation = Omit<Person, 'location'>;
+
+// PersonWithoutLocation equal to QuantumPerson
+type QuantumPerson = {
+    name: string;
+    age: string;
+};
+```
+
+```ts
+type Person = {
+    name: string;
+    age: string;
+    location: string;
+};
+
+interface IPerson {
+    name: string;
+    age: string;
+}
+
+type PersonWithoutLocation = Omit<Person, keyof IPerson>;
+```
+
+## 类型操作符
+
+- | 联合类型
+- & 交叉类型
+- as 类型断言 
+- typeof 和 instanceof 返回值的类型
+- keyof T 返回 T 的所有属性组成的联合类型
+- T[K] 返回类型 T 的 K 属性的类型
+- T extends U 泛型约束、条件类型
+- { [P in K]: T }，映射类型。将 K 中的每一个属性映射为 T 类型。例如，{ [P in keyof T]: boolean } 是一个新的类型，属性名都是 T 中的属性名，属性值都为 boolean。
+
+
+## 工具类型
+
+- Record<T, K> 返回一个键为 T 类型，值为 K 类型的对象类型。键可以为 number 类型
+
+- Partial<T> 返回一个新类型，将 T 类型中的所有属性变为可选属性
+- Required<T> 返回一个新类型，将 T 类型中的所有属性变为必选属性
+- Readonly<T> 返回一个新类型，将 T 类型中的所有属性变为只读属性
+
+- Pick<T, K> 返回一个新类型，将 T 类型中满足 K 类型的属性组成新类型。K 通常是 T 的某些属性的联合类型。
+- Omit<T, K> 返回一个新类型，将 T 类型中满足 K 类型的属性去除。K 通常是 T 的某些属性的联合类型。
+
+只用于联合类型：
+- Exclude<T, U> 返回一个新类型，将 T 类型中的 U 类型的属性去除
+- Extract<T, U> 返回一个新类型，将 T 类型中的 U 类型的属性提取出来
+
+- NonNullable<T> 返回一个新类型，将 T 类型中的 null 和 undefined 类型去除
+
+- ReturnType<T> 泛型参数T必须是函数类型，返回一个新类型，将函数的返回值类型提取出来。
+
+- InstanceType<T> 接受一个构造函数或类的类型，返回一个新类型，将构造函数的实例类型提取出来。类的类型通常可以使用 `typeof MyClass` 来获取。
