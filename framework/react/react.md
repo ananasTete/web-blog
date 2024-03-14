@@ -223,3 +223,35 @@ function App() {
 }
 ```
 
+## Children API 
+
+可以使用 props.children 访问传入组件的内容。当没有传递时，其值为 undefined; 当传递一个 JSX 元素时，其值为一个 JSX 对象; 当传递多个 JSX 元素时，其值为数组。Children API 提供了一系列方法来操作这些内容。
+
+- React.Children.count(children)：返回 children 中的元素个数。
+- React.children.map(children, (child, index) => {}, thisArg?)：遍历 children 中的每一个元素
+- React.Children.forEach(children, (child, index) => {}, thisArg?)：遍历 children 中的每一个元素
+- React.Children.only(children)： 前面说过children 的值可能是 undefined、JSX 对象、数组。这个方法判断 children 如果只有一个元素，返回该元素，否则抛出错误。也就是 children 只有一个元素的断言。
+- React.Children.toArray(children)：返回一个新数组。
+  - 如果不是数组，就将 children 转换为数组。
+  - 新数组会将 children 中的 null、undefined、布尔值 过滤掉。
+  - 如果 children 是个多层数组，会对 children 进行扁平化处理。
+  - React 的设计理念之一就是要求组件的状态和props 都是不可变的，所以通过 props.children 拿到的数组经过了处理，使其成为一个不可变对象。这也意味着任何改变 props.children 数组的方法都是不可行的，会报错。包括：push、pop、shift、unShift、splice、sort、reverse 等。而 Children.toArray() 方法返回的数组是一个新数组，可以对其进行任何操作，不会影响到原来的 props.children。
+
+
+为什么要用 Children API 提供的 count、map、every 方法，而不直接使用 children.length 和数组的方法？
+
+因为除了 Children.only 方法外：
+
+第一：每个 Children API 都会自动处理在三种可能的值下的计算，如果要自己写就要自己加判断。如 Children.count方法在值为 undefined 时返回0，值为一个 JSX 对象时返回1；every、map 方法在值为 undefined 时不会报错而是返回 undefined（对于 map 方法），值为一个对象时先将其转为数组再处理；toArray 方法会将值为 undefined 的情况转换为一个空数组。值为一个对象时返回一个数组。
+
+第二：每个 Children API 都会对 children 中的嵌套数组进行扁平化处理。如 Children.count 方法计算的是扁平化后的数组的长度，这就跟 children.length 可能不一样了。同理 Children.every 和 Children.map 遍历的数组也是扁平化后的数组，与 Array.every 和 Array.map 方法不同；toArray 方法返回的也是扁平化后的数组。
+
+第三：React 的设计理念之一就是要求组件的状态和props 都是不可变的，所以通过 props.children 拿到的数组经过了处理，使其成为一个不可变对象。这也意味着任何改变 props.children 数组的方法都是不可行的，会报错。我们需要先将 children 使用 Children.toArray 方法转换为一个新数组，然后再对其进行操作。
+
+
+React 官方并不建议使用 Children API， 他们给出了两种替代方案：
+
+- 把对 children 的修改封装成一个组件，手动包装 children 的每一项。但这种方式无法在 children 为动态内容时使用。
+- 通过 props 为组件传递一个配置对象，在组件内部根据配置对象渲染内容，解决了动态内容的问题。
+
+这两种方式都不如 Children API 来的直观。
