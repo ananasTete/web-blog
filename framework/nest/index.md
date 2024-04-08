@@ -1135,3 +1135,861 @@ class MyClass {
   }
 }
 ```
+
+## 第二部分
+
+### 注册 Provider 的多种方式
+
+NestJS 内部广泛的使用了依赖注入模式，依赖注入 Dependency Injection (DI) 是一种控制反转（IoC）技术，它会将依赖的实例化委托给 Nest JS 内部的 IoC 容器。
+
+注册 Provider 简写：
+
+```ts
+@Module({
+  controllers: [CatsController],
+  providers: [CatsService],
+})
+```
+
+以对象的方式注册 Provider：
+
+其中 provide 属性表示 Provider 的令牌，它是一个唯一标识符。在使用唯一标识符时，会从 IoC 容器中拿到 useClass 指向的类的实例，如果没有则创建一个。
+
+这样在这个模块中某一部分使用 CatsService 时，会拿到同一个实例。
+
+```ts
+providers: [
+  {
+    provide: CatsService,
+    useClass: CatsService,
+  },
+];
+```
+
+除了将类名作为令牌外，还可以将字符串、Symbol、TS 中的枚举作为令牌值。
+
+```ts
+@Module({
+  providers: [
+    {
+      provide: "CONNECTION",
+      useClass: CatsService,
+    },
+  ],
+})
+export class AppModule {}
+```
+
+此时需要使用 @Inject() 装饰器注入 Provider
+
+```ts
+@Injectable()
+export class CatsRepository {
+  constructor(@Inject("CONNECTION") cats: CatsService) {}
+}
+```
+
+useClass 也能实现动态注册 Provider：
+
+```ts
+const configServiceProvider = {
+  provide: ConfigService,
+  useClass:
+    process.env.NODE_ENV === "development"
+      ? DevelopmentConfigService
+      : ProductionConfigService,
+};
+
+@Module({
+  providers: [configServiceProvider],
+})
+export class AppModule {}
+```
+
+使用 useFactory 也能实现动态注册 Provider：
+
+useFactory 属性接受一个工厂函数，这个函数返回一个 Provider 的实例。 可以在工厂函数中计算返回指定的 Provider 实例以实现动态注册 Provider。
+
+工厂函数可以注入 Provider 用于计算。
+
+```ts
+const connectionProvider = {
+  provide: 'CONNECTION',
+  useFactory: (optionsProvider: OptionsProvider) => {
+    const options = optionsProvider.get();
+    return new DatabaseConnection(options);
+  },
+  inject: [OptionsProvider],
+
+@Module({
+  providers: [
+    connectionProvider,
+    OptionsProvider,
+    // { provide: 'SomeOptionalProvider', useValue: 'anything' },
+  ],
+})
+export class AppModule {}
+```
+
+使用 useFactory 实现异步注册 Provider：
+
+使用 async/await 语法将工厂函数声明为异步函数，它会返回一个 Promise。这样任何依赖于这个 Provider 的类都会等待这个 Promise 的解析完成后才会实例化。
+
+在下面的例子中，createConnection 表示连接服务器，如果你有一个服务依赖于这个 'ASYNC_CONNECTION' 提供者，那么这个服务将等待数据库连接建立后才会被实例化。这可以确保当你的服务开始运行时，数据库连接已经准备就绪。
+
+```ts
+{
+  provide: 'ASYNC_CONNECTION',
+  useFactory: async () => {
+    const connection = await createConnection(options);
+    return connection;
+  },
+}
+```
+
+使用 useExisting 属性为注册的 Provider 创建别名，这样就可以有多种方式访问到同一个 provider 。
+
+在下面的例子中，既可以使用 `LoggerService` 也可以使用 `AliasedLoggerService` 访问到 `LoggerService` 实例。
+
+```ts
+const loggerAliasProvider = {
+  provide: "AliasedLoggerService",
+  useExisting: LoggerService,
+};
+
+@Module({
+  providers: [LoggerService, loggerAliasProvider],
+})
+export class AppModule {}
+```
+
+### 自定义 provider
+
+我们还可以注入任意值。如常量、外部的库等
+
+这里注入了一个自定义的对象，用于临时模拟真实的 Provider。
+
+```ts
+import { CatsService } from "./cats.service";
+
+const mockCatsService = {
+  /* mock implementation
+  ...
+  */
+};
+
+@Module({
+  imports: [CatsModule],
+  providers: [
+    {
+      provide: CatsService,
+      useValue: mockCatsService,
+    },
+  ],
+})
+export class AppModule {}
+```
+
+导出 Provider
+
+在 @Module 装饰器中，可以使用 exports 属性导出 Provider。其值为一个数组，数组中的每一项都是一个 Provider 的令牌（即 provide 属性的值），或者一个 provider 对象（即 { provide: 'xx', useClass: 'xx' }）。
+
+```ts
+const configServiceProvider = {
+  provide: ConfigService,
+  useClass:
+    process.env.NODE_ENV === "development"
+      ? DevelopmentConfigService
+      : ProductionConfigService,
+};
+
+@Module({
+  providers: [configServiceProvider],
+  exports: [configServiceProvider],
+})
+export class AppModule {}
+```
+
+### Provider 和 Controller 的生命周期
+
+#### Provider 的生命周期
+
+在 Nest 中，几乎所有的东西（如数据库连接池、单例服务等）都是在所有请求之间共享的。这是因为 Node.js 并不是为每个请求创建一个单独的线程来处理，所以使用单例实例是安全的。
+
+但是我们可以通过设置 provider 的 scope 属性来控制 provider 的生命周期。
+
+- DEFAULT： provider 的单个实例在整个应用程序中共享。实例的生命周期直接与应用程序的生命周期绑定。一旦应用程序启动，所有的单例提供者都已经被实例化。即只会在 全局的 IoC 容器中实例化一次。
+- REQUEST：实例在一个请求中共享。为每个传入的请求专门创建提供者的新实例。请求处理完成后，实例将被垃圾回收。不会存在于 IoC 容器中，而是在每次请求创建的 DI 子树中。
+- TRANSIENT：每次注入都会创建一个新的实例。
+
+第二个和第三个有什么区别？
+
+前者在处理同一个请求的过程中，无论在哪里注入这个提供者，你都会得到同一个实例。后者这意味着在同一个请求中，如果你在两个不同的地方注入了一个 "TRANSIENT" 范围的提供者，你会得到两个不同的实例。
+
+在 REQUEST 下，即使使用类注入一个 Provider，也会在每次请求中创建一个新的实例吗？
+
+对。
+
+设置 scope 属性：
+
+```ts
+import { Injectable, Scope } from "@nestjs/common";
+
+@Injectable({ scope: Scope.REQUEST })
+export class CatsService {}
+```
+
+对于自定义 Provider：
+
+```ts
+{
+  provide: 'CACHE_MANAGER',
+  useClass: CacheManager,
+  scope: Scope.TRANSIENT,
+}
+```
+
+#### Controller 的生命周期
+
+和 Provider 一样，Controller 也有生命周期。设置方式是一样的：
+
+```ts
+@Controller({
+  path: "cats",
+  scope: Scope.REQUEST,
+})
+export class CatsController {}
+```
+
+此时，任何匹配到 /cats 路由的请求都会创建一个新的 CatsController 实例。
+
+为控制器设置 scope 有什么用？
+
+如果你将控制器的范围设置为 Scope.REQUEST，你可以在控制器实例中保存请求级别的状态，比如请求的身份验证信息或其他上下文信息。请求处理完成后，这个实例就会被销毁，这样可以防止状态泄露到其他请求。
+
+#### REQUEST 生命周期的影响
+
+REQUEST 范围会沿着注入链向上冒泡。依赖于请求范围提供者的控制器本身也将是请求范围的。
+
+想象以下依赖关系图：CatsController <- CatsService <- CatsRepository。如果 CatsService 是请求范围的（其他的都是默认的单例），那么 CatsController 也会变成请求范围的，因为它依赖于注入的服务。CatsRepository，因为没有依赖，所以仍然是单例范围的。
+
+这就意味着程序中可能会存在大量隐式的 REQUEST 范围的 provider 和 controller。这可能会影响程序的性能。
+
+#### REQUEST 生命周期访问请求对象
+
+当使用请求范围的提供者时，你可能希望访问原始请求对象的引用。你可以通过注入 REQUEST 对象来实现这一点。
+
+REQUEST 提供者本身也是请求范围的。
+
+```ts
+import { Injectable, Scope, Inject } from "@nestjs/common";
+import { REQUEST } from "@nestjs/core";
+import { Request } from "express";
+
+@Injectable({ scope: Scope.REQUEST })
+export class CatsService {
+  constructor(@Inject(REQUEST) private request: Request) {}
+}
+```
+
+#### TRANSIENT 生命周期获取实例化时所在的类
+
+可以通过注入 INQUIRER 来获取 provider 实例化时所在的类。
+
+```ts
+import { Inject, Injectable, Scope } from "@nestjs/common";
+import { INQUIRER } from "@nestjs/core";
+
+@Injectable({ scope: Scope.TRANSIENT })
+export class HelloService {
+  constructor(@Inject(INQUIRER) private parentClass: object) {}
+
+  sayHello(message: string) {
+    console.log(`${this.parentClass?.constructor?.name}: ${message}`);
+  }
+}
+```
+
+#### 耐用 Provider
+
+如果一个 provider 被设置为 REQUEST 范围，那依赖他的 provider 或 controller 就会隐式地成为 REQUEST 范围。这在处理大量请求时，大量的实例化会影响程序的性能。
+
+DI 子树，是指一个 controller 中依赖的 provider 组成的树结构。每接收到一个客户端发起的请求时，都会解析这个 controller 依赖的 provider 创建一个 DI 子树。如果 provider 的 scope 为 DEFAULT ，会从 Ioc 容器中获取。而为另外两种时，会在 IoC 容器中创建一个新的实例并返回。
+
+如果 provider 需要在每次请求时根据请求对象中的条件地决定一些操作，可以将其设置为 REQUEST 范围。但是如果条件是固定的几种的情况下，我们可以在 REQUEST 范围的基础上，将 provider 设置为耐用 provider。注意，依赖它的 provider 也会变为耐用的。
+
+将 provider 设置为耐用 provider：
+
+```ts
+import { Injectable, Scope } from "@nestjs/common";
+
+@Injectable({ scope: Scope.REQUEST, durable: true })
+export class CatsService {}
+```
+
+或者在自定义 provider 中设置：
+
+```ts
+{
+  provide: 'foobar',
+  useFactory: () => { ... },
+  scope: Scope.REQUEST,
+  durable: true,
+}
+```
+
+我们可以将 DI 子树保存起来，并制定一个策略，当满足某种条件时，就使用之前创建过的 DI 子树，而不是新创建一个。在这个重用的 DI 子树中，耐用 provider 的实例会被重用，非耐用 provider 会被重新创建。
+
+声明这个策略需要实现 ContextIdStrategy 类，其中 attach 方法接受两个参数，第一个是当前的 contextId，第二个是请求对象。在 attach 方法中，我们根据请求头中的 tenantId 来查找缓存的 DI 子树的 contextId。attach 方法法返回一个函数，这个函数接受一个 HostComponentInfo 对象，返回一个新的 contextId。这个函数会在创建 DI 子树时调用，决定使用之前的还是新的 DI 实例。
+
+不懂？？这里的 info.isTreeDurable 是谁决定的？？？
+
+```ts
+import {
+  HostComponentInfo,
+  ContextId,
+  ContextIdFactory,
+  ContextIdStrategy,
+} from "@nestjs/core";
+import { Request } from "express";
+
+const tenants = new Map<string, ContextId>();
+
+export class AggregateByTenantContextIdStrategy implements ContextIdStrategy {
+  attach(contextId: ContextId, request: Request) {
+    const tenantId = request.headers["x-tenant-id"] as string;
+    let tenantSubTreeId: ContextId;
+
+    if (tenants.has(tenantId)) {
+      tenantSubTreeId = tenants.get(tenantId);
+    } else {
+      tenantSubTreeId = ContextIdFactory.create();
+      tenants.set(tenantId, tenantSubTreeId);
+    }
+
+    // If tree is not durable, return the original "contextId" object
+    return (info: HostComponentInfo) =>
+      info.isTreeDurable ? tenantSubTreeId : contextId;
+  }
+```
+
+注册这个策略：
+
+```ts
+ContextIdFactory.apply(new AggregateByTenantContextIdStrategy());
+```
+
+### 循环依赖
+
+两个类相互依赖时，就形成了循环依赖。
+
+当出现循环依赖时，会导致无限循环的问题（如果两个类相互依赖，那么它们会无限循环地初始化对方），所以应该尽量避免相互依赖的情况出现。
+
+当相互依赖不可避免时，使用 forward reference 前向引用来避免循环依赖导致的问题。
+
+例如，类 A 需要类 B，而类 B 也需要类 A。这种情况下，由于两个类都还未完全定义，所以无法直接在一个类中引用另一个类。而前向引用允许我们在类的定义尚未完成时就引用它。这样，即使两个类互相依赖，我们也可以在一个类中引用另一个类。
+
+使用 @Inject() 装饰器和 forwardRef() 函数在类 A 中引用类 B，在类 B 中引用类 A。即双方都要使用 forwardRef() 函数引用对方。
+
+```ts
+@Injectable()
+export class CatsService {
+  constructor(
+    @Inject(forwardRef(() => CommonService))
+    private commonService: CommonService
+  ) {}
+}
+```
+
+```ts
+@Injectable()
+export class CommonService {
+  constructor(
+    @Inject(forwardRef(() => CatsService))
+    private catsService: CatsService
+  ) {}
+}
+```
+
+同样也可以使用这种方式解决模块间的循环依赖问题。
+
+```ts
+@Module({
+  imports: [forwardRef(() => CatsModule)],
+})
+export class CommonModule {}
+```
+
+```ts
+@Module({
+  imports: [forwardRef(() => CommonModule)],
+})
+export class CatsModule {}
+```
+
+### 模块引用
+
+可以通过注入 ModuleRef 来获取当前模块及其依赖的模块中的 provider、controller 以及任何可注入对象（如守卫、拦截器等）。之后统称为可注入对象。
+
+ModuleRef 实例有一个 get 方法，接受可注入对象的令牌，检索当前所在模块及其依赖的模块中的可注入对象的实例并返回，而不需要手动注入他们。
+
+有什么用？
+
+这使得你可以在运行时动态地获取和使用提供者，而不需要在编译时就确定所有的依赖关系。这对于实现某些高级特性，如插件系统或动态模块，非常有用。
+
+```ts
+@Injectable()
+export class CatsService implements OnModuleInit {
+  private service: Service;
+  constructor(private moduleRef: ModuleRef) {}
+
+  onModuleInit() {
+    this.service = this.moduleRef.get(Service);
+  }
+}
+```
+
+注意，只能使用 get 方法获取全局作用域的可注入对象实例，不能获取请求作用域和瞬态作用域的。
+
+如果一个可注入对象，不在当前模块中，但在全局上下问可用。可以使用 get 方法的第二个参数，传入一个可选的选项对象，设置 strict 为 false。此时，如果当前模块中没有，就会从全局上下文查找。
+
+这里的全局上下文值得是什么？文档中也说了全局上下文，例如被注册到了其他模块中。这是什么意思，可以访问其他模块的 provider 吗？
+
+```ts
+this.moduleRef.get(Service, { strict: false });
+```
+
+使用 ModuleRef.resolve 方法获取请求和瞬态作用域可注入对象，其第一个参数和 get 方法一样。但其返回一个 Promise，解析值为可注入对象的实例。
+
+```ts
+@Injectable()
+export class CatsService implements OnModuleInit {
+  private transientService: TransientService;
+  constructor(private moduleRef: ModuleRef) {}
+
+  async onModuleInit() {
+    this.transientService = await this.moduleRef.resolve(TransientService);
+  }
+}
+```
+
+那 get 方法和 resolve 方法有什么区别？
+
+get 方法是同步的，它会从 IoC 容器中获取可注入对象的实例。resolve 方法是异步的，他会创建一个 DI 子树，并实例化可注入对象。
+
+对于全局作用域的 provider ，就用 get 方法。而请求和瞬态作用域的 provider 不存在于 IoC 容器中，所以使用 resolve 方法重新创建。对于全局和瞬态的 provider 都符合其作用域定义。但请求作用域的 provider 并没有获取到客户端请求时创建的实例，而是重新创建了一个实例。
+
+注意，每次调用 resolve 方法都会创建一个新的 DI 子树并实例化 provider。这也意味着使用 resolve 方法多次获取同一个 provider 会创建多个实例。
+
+那如何获取客户端请求时创建的 DI 子树上的请求作用域的实例，而不是创建一个新的呢？
+
+如果当前 provider 也是一个请求作用域的 provider ，那可以通过注入请求对象来获取客户端请求时创建的 DI 子树的 contextId，然后使用 resolve 方法获取 provider 的实例。此时，resolve 方法会使用当前 DI 子树的 contextId，而不是创建一个新的 DI 子树。进而实现需求。
+
+```ts
+@Injectable()
+export class CatsService {
+  constructor(@Inject(REQUEST) private request: Record<string, unknown>) {}
+}
+```
+
+```ts
+const contextId = ContextIdFactory.getByRequest(this.request);
+const catsRepository = await this.moduleRef.resolve(CatsRepository, contextId);
+```
+
+如果当前 provider 是全局作用域的，他会在程序初始化时实例化。其无法获取请求时的信息，如请求对象。所以无法实现。
+
+那如果我们需要动态实例化一个没有注册为 provider 的类，可以使用 ModuleRef.create 方法。
+
+```ts
+@Injectable()
+export class CatsService implements OnModuleInit {
+  private catsFactory: CatsFactory;
+  constructor(private moduleRef: ModuleRef) {}
+
+  async onModuleInit() {
+    this.catsFactory = await this.moduleRef.create(CatsFactory);
+  }
+}
+```
+
+### 懒加载模块
+
+默认情况下，一旦应用程序加载，所有的模块都会加载，无论它们是否立即需要。虽然这对大多数应用程序来说都没问题，但对于在无服务器环境中运行的应用程序/工作器来说，可能会成为瓶颈，因为启动延迟（"冷启动"）是至关重要的。
+
+Nest 通过 LazyModuleLoader 类实现模块的懒加载。
+
+它可以按照一般的方式注入到类中：
+
+```ts
+@Injectable()
+export class CatsService {
+  constructor(private lazyModuleLoader: LazyModuleLoader) {}
+}
+```
+
+或者可以在 main.ts 中获取 LazyModuleLoader 实例。
+
+```ts
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  const lazyModuleLoader = app.get(LazyModuleLoader);
+  // ...
+}
+bootstrap();
+```
+
+然后就可以使用 LazyModuleLoader 实例的 load 方法加载模块。
+
+```ts
+const { LazyModule } = await import("./lazy.module");
+const moduleRef = await this.lazyModuleLoader.load(() => LazyModule);
+```
+
+注意，懒加载的模块在第一次加载以后就会被缓存。所以第二次加载时，不会再次加载。
+
+load 方法返回的模块的引用，可以通过 moduleRef.get 方法获取模块中的 provider。
+
+```ts
+const { LazyModule } = await import("./lazy.module");
+const moduleRef = await this.lazyModuleLoader.load(() => LazyModule);
+
+const { LazyService } = await import("./lazy.service");
+const lazyService = moduleRef.get(LazyService);
+```
+
+注意，懒加载模块只能用于访问其 provider，但 controller 无法正常工作。因为路由是在程序启动时注册的，懒加载模块的 controller 不会被注册。所以通常懒加载模块中只包含 provider。
+
+注意，需要设置 tsconfig.json 的 module 和 moduleResolution 字段才能正常使用懒加载。
+
+```json
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "node"
+  }
+}
+```
+
+### 执行上下文
+
+Nest 提供了一些使用的类，用于访问当前执行上下文的信息。
+
+#### ArgumentsHost
+
+ArgumentsHost 类提供了获取传递给请求处理方法的参数的方法。在不同的环境下（如 HTTP、RPC、WebSockets、graphql）会传递不同的参数，所以想要获取这些参数，首先要为 ArgumentsHost 实例指定不同的环境。Nest 会在可能需要的地方提供 ArgumentsHost 实例，通常作为函数的参数存在。即不能主动获取。如异常过滤器的 catch 方法存在一个参数为 ArgumentsHost 实例。
+
+```ts
+import { Catch, ArgumentsHost } from "@nestjs/common";
+import { BaseExceptionFilter } from "@nestjs/core";
+
+@Catch()
+export class AllExceptionsFilter extends BaseExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost) {
+    const ctx = host.switchToHttp(); // 选择 HTTP 环境
+    const request = ctx.getRequest(); // 获取请求对象
+    const response = ctx.getResponse(); // 获取响应对象
+
+    // ...
+  }
+}
+```
+
+在创建用于多个环境中运行的通用守卫、拦截器和过滤器时，可以通过 ArgumentsHost.getType 方法获取当前的环境，进而分别处理。
+
+```ts
+const type = host.getType();
+if (type === "http") {
+  // ...
+} else if (type === "rpc") {
+  // ...
+} else if (type === "ws") {
+  // ...
+}
+```
+
+获取参数：
+
+在 HTTP 环境下，ArgumentsHost 实例封装了 `[request、response、next]` 数组；在 GraphQl 环境下，实例封装了 `[root、args、context、info]` 数组。
+
+首先要使用 ArgumentsHost.switchToHttp、ArgumentsHost.switchToRpc、ArgumentsHost.switchToWs、ArgumentsHost.switchToGraphql 方法获取特定特定的上下文对象，然后通过这个上下文对象获取参数。
+
+```ts
+const ctx = host.switchToHttp(); // 选择 HTTP 环境
+const request = ctx.getRequest(); // 获取请求对象
+const response = ctx.getResponse(); // 获取响应对象
+```
+
+#### ExecutionContext
+
+ExecutionContext 类继承自 ArgumentsHost 类，提供了关于当前执行过程的额外信息。它也不能主动获取，Nest 会在需要的地方作为函数的参数存在。如守卫的 canActive 方法和拦截器的 intercept 方法。
+
+ExecutionContext 类提供了 getHandler 方法获取当前请求处理方法的引用；getClass 方法获取当前请求处理方法所在的类的类型。
+
+这两个数据的重要作用就是，可以通过这两个数据获取添加到函数或类上的元数据。装饰器的作用就是在函数和类上添加元数据，而我们需要获取函数和类上的元数据再进行特定的操作，获取元数据的操作就需要这两个数据的参与。
+
+使用 Reflector#createDecorator 方法可以创建一个装饰器。
+
+```ts
+import { Reflector } from "@nestjs/core";
+
+export const Roles = Reflector.createDecorator<string[]>(); // 创建一个装饰器
+```
+
+绑定到请求处理方法上。
+
+```ts
+@Post()
+@Roles(['admin'])
+async create(@Body() createCatDto: CreateCatDto) {
+  this.catsService.create(createCatDto);
+}
+```
+
+在导航守卫中获取元数据，就能根据元数据进行操作。
+
+get 方法的第一个参数是装饰器，第二个参数是装饰器所在的请求处理方法的引用。
+
+```ts
+@Injectable()
+export class RolesGuard {
+  constructor(private reflector: Reflector) {} // 注入 Reflector 实例
+  canActive(context: ExecutionContext): boolean {
+    const roles = this.reflector.get<string[]>(Roles, context.getHandler());
+    if (roles.includes("admin")) {
+      return true;
+    }
+    // ...
+  }
+}
+```
+
+也可以将装饰器添加到 controller 上：
+
+```ts
+@Roles(["admin"])
+@Controller("cats")
+export class CatsController {}
+```
+
+获取元数据时，就要使用 getClass 方法获取当前请求处理方法所在的类的类型。
+
+```ts
+const roles = this.reflector.get(Roles, context.getClass());
+```
+
+如果需要在 controller 和其处理方法上都添加装饰器，可以使用 Reflector.getAllAndOverride 方法获取所有的元数据并后者覆盖前者；使用 Reflector.getAllAndMerge 方法获取所有的元数据并合并。
+
+getAllAndOverride 方法获取的元数据中，后者覆盖前者，那直接获取后者不完了？可以用于需要前者作为默认值出现的情况。如果没有提供后者，就使用前者。
+
+```ts
+@Roles(["user"])
+@Controller("cats")
+export class CatsController {
+  @Post()
+  @Roles(["admin"])
+  async create(@Body() createCatDto: CreateCatDto) {
+    this.catsService.create(createCatDto);
+  }
+}
+```
+
+```ts
+const roles = this.reflector.getAllAndOverride(Roles, [
+  context.getHandler(),
+  context.getClass(),
+]); // ['admin']
+```
+
+```ts
+const roles = this.reflector.getAllAndMerge(Roles, [
+  context.getHandler(),
+  context.getClass(),
+]); // ['user', 'admin']
+```
+
+也可以使用 @SetMetadata 装饰器为类和方法添加元数据。相对于前者可以接受多余一个的参数。
+
+```ts
+import { SetMetadata } from "@nestjs/common";
+
+export const Roles = (...roles: string[]) => SetMetadata("roles", roles);
+```
+
+获取元数据时，Reflector.get 方法的第一个参数变成了元数据的键。
+
+```ts
+const roles = this.reflector.get<string[]>("roles", context.getHandler());
+```
+
+### 生命周期
+
+Nest 应用程序以及每个应用程序元素（模块，provider，controller 等）都有一个由 Nest 管理的生命周期。Nest 提供了生命周期钩子，允许你在特定的生命周期事件中执行代码。
+
+可以在应用程序和应用程序元素上注册这些生命周期钩子，Nest 会在对应的生命周期事件时调用这些钩子。
+
+- onModuleInit：在模块的依赖项被解析后调用。即模块初始化后调用。
+- onApplicationBootstrap：在所有模块都已初始化，但在开始监听连接之前被调用。
+- onModuleDestroy：在接收到终止信号（例如，SIGTERM）后调用。
+- beforeApplicationShutdown：在所有 onModuleDestroy() 处理程序完成（Promise 解析或拒绝）后，会调用 beforeApplicationShutdown 方法；一旦完成（Promise 解析或拒绝），所有现有的连接将被关闭（调用 app.close()）。
+- onApplicationShutdown：在连接关闭（app.close() 解析）后调用。
+
+后三者只有在手动调用了 app.close() 方法后，或者手动调用了 app.enableShutdownHooks 方法并且接收到特殊的系统信号（如 SIGTERM）后才会被触发。
+
+注意，以上的生命周期钩子不会触发在请求作用域的类上，因为其不与应用程序的生命周期绑定，他们在请求到来时实例化，请求结束后销毁。
+
+注意，onModuleInit() 和 onApplicationBootstrap() 的执行顺序直接取决于模块导入的顺序，等待前一个钩子。这意味着，如果你的模块 A 导入了模块 B，那么模块 B 的 onModuleInit() 和 onApplicationBootstrap() 方法将在模块 A 的相应方法之前执行。
+
+提示，声明周期钩子也支持声明为异步函数。
+
+为 provider 声明一个 onModuleInit 钩子，他会在 provider 所在的模块初始化后调用。provider 需要实现 OnModuleInit 接口。
+
+```ts
+import { Injectable, OnModuleInit } from "@nestjs/common";
+
+@Injectable()
+export class UsersService implements OnModuleInit {
+  onModuleInit() {
+    console.log(`The module has been initialized.`);
+  }
+}
+```
+
+onModuleDestroy()、beforeApplicationShutdown() 和 onApplicationShutdown() 钩子在终止阶段被调用（需要设置）。这个特性经常与 Kubernetes 一起使用，以管理容器的生命周期，或者由 Heroku 用于 dynos 或类似的服务。
+
+如果你通过监听特殊的系统信号来启用这些钩子，你需要使用 app.enableShutdownHooks() 方法启动监听器，但其会消耗系统资源，所以它们默认是禁用的。
+
+### 测试
+
+#### 单元测试
+
+Nest 提供了开箱即用的 Jest 和 Supertest，用于编写单元测试和集成测试。还需要安装额外的 @nestjs/testing 包，它提供了模拟完整的 Nest 运行时环境的工具。
+
+```ts
+import { Test } from '@nestjs/testing';
+import { CatsController } from './cats.controller';
+import { CatsService } from './cats.service';
+
+describe('CatsController', () => {
+  let catsController: CatsController;
+  let catsService: CatsService;
+
+  beforeEach(async () => {
+    const moduleRef = await Test.createTestingModule({
+        controllers: [CatsController],
+        providers: [CatsService],
+      }).compile();
+
+    catsService = moduleRef.get<CatsService>(CatsService);
+    catsController = moduleRef.get<CatsController>(CatsController);
+  });
+
+  describe('findAll', () => {
+    it('should return an array of cats', async () => {
+      const result = ['test'];
+      jest.spyOn(catsService, 'findAll').mockImplementation(() => result);
+
+      expect(await catsController.findAll()).toBe(result);
+    });
+  });
+});
+```
+
+Test.createTestingModule 方法创建一个测试模块，其接受一个模块元数据对象作为其参数，就是传给 @Module 装饰器的对象。调用 compiler 方法后返回一个 TestingModule 实例。
+
+可以使用 TestingModule 实例的 get 方法获取全局作用域的 provider 的实例。也可以使用 resolve 方法获取请求和瞬态作用域的 provider 的实例。就像之前的 ModuleRef 实例一样。这样会尽可能地模拟真实的 Nest 运行时环境。
+
+获取到实例之后，就可以进行测试了。
+
+#### mock
+
+在创建 TestingModule 时，可以结合 useMocker 方法，实现模拟一个 provider ，而不是使用真实的 provider。
+
+useMocker 方法接受一个工厂函数，接受一个 token 参数，需要返回 provider 的模拟实例。每次使用 TestingModule.get/resolve 方法获取 provider 时，都会调用这个工厂函数，参数也会成为工厂函数的 token。
+
+在这个例子中，如果 token 为 CatsService，那就返回一个包含 findAll 方法的对象，其返回值为 ['test1', 'test2']。而当你使用其他的类时（类也是函数），就会调用 ModuleMocker.getMetadata 方法获取这个类的元数据，然后调用 ModuleMocker.generateFromMetadata 方法生成一个模拟实例。即我们为 CatsService 提供了一个模拟实例，并使用了 jest-mock 方法生成了一个通用的模拟实例。
+
+```ts
+// cats.controller.spec.ts 注意测试文件命名
+import { ModuleMocker, MockFunctionMetadata } from 'jest-mock';
+
+const moduleMocker = new ModuleMocker(global);
+
+describe('CatsController', () => {
+  let controller: CatsController;
+
+  beforeEach(async () => {
+    const moduleRef = await Test.createTestingModule({
+      controllers: [CatsController],
+    })
+      .useMocker((token) => {
+        const results = ['test1', 'test2'];
+        if (token === CatsService) {
+          return { findAll: jest.fn().mockResolvedValue(results) };
+        }
+        if (typeof token === 'function') {
+          const mockMetadata = moduleMocker.getMetadata(token) as MockFunctionMetadata<any, any>;
+          const Mock = moduleMocker.generateFromMetadata(mockMetadata);
+          return new Mock();
+        }
+      })
+      .compile();
+
+    controller = moduleRef.get(CatsController);
+  });
+});
+```
+
+#### 端到端测试
+
+与关注于单个的模块和类的单元测试不同，端到端测试覆盖了类和模块在更接近用户与生产环境下的程序的交互行为的测试。
+
+在单元测试中，我们使用 TestingModule 直接获取了 provider 。在下面的例子中，我们使用 createNestApplication 方法实例化一个完整的 Nest 运行时环境，并保存在变量 app 中。
+
+我们使用 Supertest 的 request() 函数模拟 HTTP 测试。传给 request 函数一个参数：Nest 应用的 HTTP 监听器。这样这个请求就会路由到 app 中，并断言状态码和响应体。
+
+我们还使用了 overrideProvider 方法，用于替换 CatsService 的实现，相似的还有overrideModule()、overrideGuard()、overrideInterceptor()、overrideFilter() 和 overridePipe() 方法覆盖模块、守卫、拦截器、过滤器和管道。
+- 每个方法都接受一个令牌作为参数，之后的调用的 useValue 方法就会覆盖这个令牌的实现。
+- 每个方法（除了 overrideModule）都返回一个对象，包含三种提供替代实现的方法：useValue、useClass 和 useFactory，和自定义 provider 中一样。这里我们就使用了 useValue 直接提供了一个替代实现。
+- 对于 overrideModule 方法，其返回一个包含 useModule 方法的对象，我们调用 useModule 方法传入一个模块元数据对象，就可以替换模块的实现。
+
+```ts
+// cats.e2e-spec.ts 注意测试文件命名
+import * as request from 'supertest';
+import { Test } from '@nestjs/testing';
+import { CatsModule } from '../../src/cats/cats.module';
+import { CatsService } from '../../src/cats/cats.service';
+import { INestApplication } from '@nestjs/common';
+
+describe('Cats', () => {
+  let app: INestApplication;
+  let catsService = { findAll: () => ['test'] };
+
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [CatsModule],
+    })
+      .overrideProvider(CatsService)
+      .useValue(catsService)
+      .compile();
+
+    app = moduleRef.createNestApplication();
+    await app.init();
+  });
+
+  it(`/GET cats`, () => {
+    return request(app.getHttpServer())
+      .get('/cats')
+      .expect(200)
+      .expect({
+        data: catsService.findAll(),
+      });
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+});
+```
+
+#### 测试请求作用域的实例
