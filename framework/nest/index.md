@@ -1,8 +1,8 @@
-### 概述
+## 概述
 
 NestJS 是一个基于 express 的 HTTP 服务框架（可选 fastify），但也直接向开发者暴露出他们的 API，以便于使用他们的第三方模块。
 
-可以安装 @nestjs/cli 来创建一个 NestJS 项目，他默认启用 TS。项目中还包含了其他配置，如 prettier、eslint、jest 等。
+可以安装 @nestjs/cli 来创建一个 Nest 项目，他默认启用 TS。项目中还包含了其他配置，如 prettier、eslint、jest 等。
 
 ```shell
 pnpm add @nestjs/cli
@@ -68,17 +68,17 @@ export class CatsController {
 }
 ```
 
-每个 Controller 类都需要使用 @Controller() 装饰器来注解。这个装饰器接受一个字符串参数，用来指定路由的**前缀**。如这里的 plan 前缀，那么这个控制器的所有路由都会以 /plan 开头。
+每个 Controller 类都需要使用 `@Controller()` 装饰器来注解。这个装饰器接受一个字符串参数，用来指定路由的**前缀**。如这里的 plan 前缀，那么这个控制器的所有路由都会以 `/plan` 开头。
 
-findAll 方法使用 @Get('index') 装饰器来指定路由。这个装饰器接受一个字符串参数，用来指定请求的路径和方法即路由。即客户端访问 GET /plan/index 时，就会导航到这个控制器的这个方法。
+findAll 方法使用 `@Get('index')` 装饰器来指定路由。这个装饰器接受一个字符串参数，用来指定请求的路径和方法即路由。即客户端访问 `GET /plan/index` 时，就会导航到这个控制器的这个方法。
 
-findAll 方法中可以通过装饰器拿到请求体、请求头、请求参数等信息。如使用 @Body 获取请求体；使用 @Req() 装饰器来获取底层框架 Express 的请求对象。注意，底层框架的请求对象的类型需要由 @types/express 提供。还可以通过 @Res 拿到响应对象用来设置响应体。但是不推荐这种直接访问底层框架的 API 的方式，因为这样会降低 Nest 程序的可移植性，不能用其他底层框架了。所以大多数情况下，使用 @Body 和 @Query 等 NestJS 提供的装饰器就够了。
+findAll 方法中可以通过装饰器拿到请求体、请求头、请求参数等信息。如使用 @Body 获取请求体；使用 `@Req()` 装饰器来获取底层框架 Express 的请求对象。注意，底层框架的请求对象的类型需要由 @types/express 提供。还可以通过 `@Res()` 拿到响应对象用来设置响应体。但是不推荐这种直接访问底层框架的 API 的方式，因为这样会降低 Nest 程序的可移植性，不能用其他底层框架了。所以大多数情况下，使用 `@Body() 和 @Query()` 等 NestJS 提供的装饰器就够了。
 
 findAll 方法返回一个字符串，这个字符串会作为响应体返回给客户端。如果返回值是一个引用类型的值，会将其序列化为 JSON 字符串，基本类型的值会直接返回。
 
 #### 设置路由
 
-控制器中使用 @Get(), @Post(), @Put(), @Delete(), @Patch(), @Options(), @Head() 等装饰器来指定请求方法。@All 可以处理所有类型的请求。
+控制器中使用 `@Get(), @Post(), @Put(), @Delete(), @Patch(), @Options(), @Head()` 等装饰器来指定请求方法。`@All` 可以处理所有类型的请求。
 
 ##### 动态路由
 
@@ -97,18 +97,18 @@ findOne(@Param('id') id: string): string {
 
 #### 获取请求对象
 
-| 装饰器                   | 说明                                                |
-| ------------------------ | --------------------------------------------------- |
-| @Request()/@Req()        | 获取底层框架的请求对象                              |
-| @Response()/@Res()       | 获取底层框架的响应对象                              |
-| @Next()                  | 获取下一个中间件函数                                |
-| @Session()               | req.session                                         |
-| @Param(key?: string)     | req.params/req.params[key] 请求参数                 |
-| @Body(key?: string)      | req.body/req.body[key] 请求体                       |
-| @Query(key?: string)     | req.query/req.query[key] 请求查询                   |
-| @Headers(name?: string)  | req.headers/req.headers[name] 请求头                |
-| @Ip()                    | req.ip 客户端 IP 地址                               |
-| @HostParam(key?: string) | 获取域名/获取域名中的动态部分（详见子域名路由部分） |
+| 装饰器                     | 说明                                                |
+| -------------------------- | --------------------------------------------------- |
+| `@Request()/@Req()`        | 获取底层框架的请求对象                              |
+| `@Response()/@Res()`       | 获取底层框架的响应对象                              |
+| `@Next()`                  | 获取下一个中间件函数                                |
+| `@Session()`               | req.session                                         |
+| `@Param(key?: string)`     | req.params/req.params[key] 请求参数                 |
+| `@Body(key?: string)`      | req.body/req.body[key] 请求体                       |
+| `@Query(key?: string)`     | req.query/req.query[key] 请求查询                   |
+| `@Headers(name?: string)`  | req.headers/req.headers[name] 请求头                |
+| `@Ip()`                    | req.ip 客户端 IP 地址                               |
+| `@HostParam(key?: string)` | 获取域名/获取域名中的动态部分（详见子域名路由部分） |
 
 注意，@Req() 和 @Res() 装饰器获取的是底层框架的请求和响应对象，不推荐使用。推荐使用 @Body、@Params() 等与底层框架无关的装饰器。
 
@@ -186,7 +186,7 @@ create() {
 
 #### 子域名路由
 
-子域名路由可以根据请求的主机（或子域名）来路由请求。例如，你可能有一个应用程序，其中 admin.example.com 路由到你的应用程序的管理员部分，而 user.example.com 路由到用户部分。即对应到两个控制器。
+子域名路由可以根据请求的主机（或子域名）来路由请求。例如，你可能有一个应用程序，其中 `admin.example.com` 路由到你的应用程序的管理员部分，而 `user.example.com` 路由到用户部分。即对应到两个控制器。
 
 ```ts
 @Controller({ host: "admin.example.com" })
@@ -198,7 +198,7 @@ export class AdminController {
 }
 ```
 
-URL 中的主机名可以包含动态部分，这些部分可以在运行时改变。这些动态部分被称为"令牌"。例如，你可能有一个服务，它为多个用户提供个性化的子域名，如 user1.example.com 和 user2.example.com。在这种情况下，user1 和 user2 是动态的部分，可以用一个令牌（如 :account）来表示。在处理请求的方法中使用 @HostParam() 装饰器来获取这个令牌。
+URL 中的主机名可以包含动态部分，这些部分可以在运行时改变。这些动态部分被称为"令牌"。例如，你可能有一个服务，它为多个用户提供个性化的子域名，如 `user1.example.com` 和 `user2.example.com`。在这种情况下，user1 和 user2 是动态的部分，可以用一个令牌（如 `:account`）来表示。在处理请求的方法中使用 `@HostParam()` 装饰器来获取这个令牌。
 
 ```ts
 @Controller({ host: ":account.example.com" })
@@ -242,7 +242,7 @@ providers 是什么？
 Nest 内部广泛应用了依赖注入这种设计模式，所以你需要再多个地方使用一个实例即可时，可以为参数传递一个类，当你需要特定的实例或实例化时，可以传递一个新的实例。这都是可以兼容处理的。
 :::
 
-NestJS 中广泛用到了面向对象的编程方式，我们应该遵循 SOLID 原则：
+Nest 中广泛用到了面向对象的编程方式，我们应该遵循 SOLID 原则：
 
 SOLID 原则是五个面向对象编程和设计的基本原则，它们是：
 
@@ -1034,20 +1034,22 @@ export class AppModule {}
 
 装饰器的定义是一个函数，它默认存在三个参数：
 
-当装饰器注解的是一个类时，只有一个参数：target。代表被装饰的类的构造函数。
+1. 当装饰器注解的是一个类时，只有一个参数：target。代表被装饰的类的构造函数。
 
-当装饰器注解的是一个类的属性或方法时，存在三个参数：target、key、descriptor。target 代表被装饰的类的原型对象，key 代表被装饰的属性或方法的名称，descriptor 代表被装饰的属性或方法的描述符对象。就是 `Object.defineProperty` 的第三个参数。
+2. 当装饰器注解的是一个类的属性或方法时，存在三个参数：target、key、descriptor。target 代表被装饰的类的原型对象，key 代表被装饰的属性或方法的名称，descriptor 代表被装饰的属性或方法的描述符对象。就是 `Object.defineProperty` 的第三个参数。
 
-- value: 被装饰得值
-- writable: 是否可写
-- enumerable: 是否可枚举
-- configurable: 是否可配置
+   - value: 被装饰得值
+   - writable: 是否可写
+   - enumerable: 是否可枚举
+   - configurable: 是否可配置
 
-当装饰器注解的是一个方法的参数时，也存在三个参数：target、key、parameterIndex。target 代表被装饰的类的原型对象，如果你的方法是静态方法，那么 target 就是类的构造函数；key 代表被装饰的方法的名称；parameterIndex 代表被装饰的参数的索引。
+3. 当装饰器注解的是一个方法的参数时，也存在三个参数：target、key、parameterIndex。target 代表被装饰的类的原型对象，如果你的方法是静态方法，那么 target 就是类的构造函数；key 代表被装饰的方法的名称；parameterIndex 代表被装饰的参数的索引。
 
 使用这三个参数就可以实现通过原型对象为类添加属性和方法、通过描述符对象修改或拓展属性或方法的行为。
 
 装饰器都是在类声明时就会被调用，即它是在编译时调用的，而不是运行时。
+
+#### 注解类
 
 注解类的装饰器通常是在原型对象上添加、修改、覆盖属性和方法。
 
@@ -1084,6 +1086,8 @@ class Greeting {
   }
 }
 ```
+
+#### 注解类的成员
 
 注解类的属性或方法的装饰器通常是在描述符对象上修改或拓展属性或方法，甚至定义一个新的描述符对象。此时装饰器函数需要返回修改了的描述符对象或新的描述符对象。
 
@@ -1123,6 +1127,8 @@ class MyClass {
   }
 }
 ```
+
+#### 注解类方法的参数
 
 注解类方法的参数的装饰器通常是在方法上添加关于这个参数的元数据。并配合注解方法的装饰器读取元数据来实现：数据校验、类型检查、数据转换等功能。
 
@@ -1166,7 +1172,78 @@ class MyClass {
 }
 ```
 
-### Nest 中的装饰器
+### 自定义装饰器
+
+#### 自定义类、类方法装饰器
+
+详见执行上下文/ExecutionContext 的模块。
+
+自定义类、类方法装饰器分为两部分：
+1. 声明装饰器，将数据添加到方法的元数据上
+2. 声明守卫，获取元数据并报错。
+
+#### 自定义参数装饰器
+
+Nest 为 controller 的请求处理方法提供了一些预制的参数装饰器，如 `@Body() @Query()` 等。客户端在请求对象中添加数据，web 服务应用中获取数据并进行相应的处理是很常见的做法。可以在请求处理对象的方法中使用请求对象获取自定义的数据。但如果需要在多个处理方法中获取这个数据时，就可以自定义参数装饰器来封装这个行为。
+
+使用 createParamsDecorator 方法创建一个参数装饰器，接受一个函数作为参数。第一个参数为传递给装饰器的参数 'firstName'，第二个参数为 ExecutionContext 实例，详见执行上下文章节。
+
+```ts
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
+
+export const User = createParamDecorator(
+  (data: string, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    const user = request.user;
+
+    return data ? user?.[data] : user;
+  }
+);
+```
+
+```ts
+@Get()
+async findOne(@User('firstName') firstName: string) {
+  console.log(`Hello ${firstName}`);
+}
+```
+
+##### 与 ValidationPipe 一起使用
+
+当想要为自定义的参数装饰器添加管道时，需要将 validateCustomDecorators 参数设置为 true。否则 ValidationPipe 会忽略自定义的参数装饰器。其他内置管道不用。
+
+```ts
+@Get()
+async findOne(
+  @User(new ValidationPipe({ validateCustomDecorators: true }))
+  user: UserEntity,
+) {
+  console.log(user);
+}
+```
+
+##### 装饰器组合使用
+
+可以通过 applyDecorators 方法将多个装饰器组合在一起。
+
+```ts
+import { applyDecorators } from "@nestjs/common";
+
+export function Auth(...roles: Role[]) {
+  return applyDecorators(
+    SetMetadata("roles", roles),
+    UseGuards(AuthGuard, RolesGuard),
+    ApiBearerAuth(),
+    ApiUnauthorizedResponse({ description: "Unauthorized" })
+  );
+}
+```
+
+```ts
+@Get('users')
+@Auth('admin')
+findAllUsers() {}
+```
 
 ### 总结
 
@@ -1176,7 +1253,7 @@ class MyClass {
 
 存在中间件、守卫、管道、拦截器来对请求过程中的请求、响应、参数进行处理。他们都需要使用 @Injectable 装饰器注解，是因为他们一般都要注入其他 provider 作为依赖。
 
-## 第二部分
+## 深入
 
 ### Provider
 
@@ -1371,25 +1448,21 @@ const configServiceProvider = {
 export class AppModule {}
 ```
 
-### 注入作用域
+### 作用域
 
-#### Provider 的生命周期
+#### Provider 的作用域
 
 在 Nest 中，几乎所有的东西（如数据库连接池、单例服务等）都是在所有请求之间共享的。这是因为 Node.js 并不是为每个请求创建一个单独的线程来处理，所以使用单例实例是安全的。
 
-但是我们可以通过设置 provider 的 scope 属性来控制 provider 的生命周期。
+但是我们可以通过设置 provider 的 scope 属性来控制 provider 的作用域。
 
-- DEFAULT： provider 的单个实例在整个应用程序中共享。实例的生命周期直接与应用程序的生命周期绑定。一旦应用程序启动，所有的单例提供者都已经被实例化。即只会在 全局的 IoC 容器中实例化一次。
-- REQUEST：实例在一个请求中共享。为每个传入的请求专门创建提供者的新实例。请求处理完成后，实例将被垃圾回收。不会存在于 IoC 容器中，而是在每次请求创建的 DI 子树中。
-- TRANSIENT：每次注入都会创建一个新的实例。
+- DEFAULT（全局作用域）： 实例在整个应用程序中共享。实例的生命周期直接与应用程序的生命周期绑定。一旦应用程序启动，所有的单例提供者都已经被实例化。即只会在全局的 IoC 容器中实例化一次，之后程序中所有地方注入同一个实例。
+- REQUEST（请求作用域）：实例在一个请求中共享。为每个传入的请求专门创建提供者的新实例。请求处理完成后，实例将被垃圾回收。不会存在于 IoC 容器中，而是在每次请求创建的 DI 子树中实例化。
+- TRANSIENT（瞬态作用域）：每次注入都会创建一个新的实例。
 
 第二个和第三个有什么区别？
 
 前者在处理同一个请求的过程中，无论在哪里注入这个提供者，你都会得到同一个实例。后者这意味着在同一个请求中，如果你在两个不同的地方注入了一个 "TRANSIENT" 范围的提供者，你会得到两个不同的实例。
-
-在 REQUEST 下，即使使用类注入一个 Provider，也会在每次请求中创建一个新的实例吗？
-
-对。
 
 设置 scope 属性：
 
@@ -1400,7 +1473,7 @@ import { Injectable, Scope } from "@nestjs/common";
 export class CatsService {}
 ```
 
-对于自定义 Provider：
+对象语法：
 
 ```ts
 {
@@ -1410,7 +1483,7 @@ export class CatsService {}
 }
 ```
 
-#### Controller 的生命周期
+#### Controller 的作用域
 
 和 Provider 一样，Controller 也有生命周期。设置方式是一样的：
 
@@ -1430,15 +1503,15 @@ export class CatsController {}
 
 #### REQUEST 生命周期的影响
 
-REQUEST 范围会沿着注入链向上冒泡。依赖于请求范围提供者的控制器本身也将是请求范围的。
+REQUEST 范围会沿着注入链向上冒泡。依赖于请求作用域提供者的控制器本身也将是请求范围的。
 
-想象以下依赖关系图：CatsController <- CatsService <- CatsRepository。如果 CatsService 是请求范围的（其他的都是默认的单例），那么 CatsController 也会变成请求范围的，因为它依赖于注入的服务。CatsRepository，因为没有依赖，所以仍然是单例范围的。
+想象以下依赖关系图：CatsController <- CatsService <- CatsRepository。如果 CatsService 是请求范围的（其他的都是默认作用域），那么 CatsController 也会变成请求范围的，因为它依赖于注入的服务。CatsRepository，因为没有依赖，所以仍然是单例范围的。
 
-这就意味着程序中可能会存在大量隐式的 REQUEST 范围的 provider 和 controller。这可能会影响程序的性能。
+这就意味着程序中可能会存在大量隐式的 REQUEST 范围的 provider 和 controller。在处理大量请求时，就会有大量的实例化，可能会对程序的性能产生影响。
 
 #### REQUEST 生命周期访问请求对象
 
-当使用请求范围的提供者时，你可能希望访问原始请求对象的引用。你可以通过注入 REQUEST 对象来实现这一点。
+当使用请求范围的提供者时，你可能希望在 provider 中访问原始请求对象的引用。你可以通过注入 REQUEST 对象来实现这一点。
 
 REQUEST 提供者本身也是请求范围的。
 
@@ -1475,9 +1548,9 @@ export class HelloService {
 
 如果一个 provider 被设置为 REQUEST 范围，那依赖他的 provider 或 controller 就会隐式地成为 REQUEST 范围。这在处理大量请求时，大量的实例化会影响程序的性能。
 
-DI 子树，是指一个 controller 中依赖的 provider 组成的树结构。每接收到一个客户端发起的请求时，都会解析这个 controller 依赖的 provider 创建一个 DI 子树。如果 provider 的 scope 为 DEFAULT ，会从 Ioc 容器中获取。而为另外两种时，会在 IoC 容器中创建一个新的实例并返回。
+DI 子树，是指一个 controller 中依赖的 provider 组成的树结构。每接收到一个客户端发起的请求时，都会解析这个 controller 依赖的 provider 创建一个 DI 子树。如果 provider 的 scope 为 DEFAULT ，会从 Ioc 容器中获取。而为另外两种时，会在 IoC 容器中创建一个新的实例。
 
-如果 provider 需要在每次请求时根据请求对象中的条件地决定一些操作，可以将其设置为 REQUEST 范围。但是如果条件是固定的几种的情况下，我们可以在 REQUEST 范围的基础上，将 provider 设置为耐用 provider。注意，依赖它的 provider 也会变为耐用的。
+如果 provider 需要在每次请求时根据请求对象中的条件地决定一些操作，可以将其设置为 REQUEST 范围，这样就能通过上面说过的方法获取请求对象。但是如果条件是固定的几种的情况下，每次请求都创建实例不太划算。如果可以在同一种情况下复用实例，不同情况下重新创建实例会更高效。这就是耐用 provider ：我们可以在 REQUEST 范围的基础上，将 provider 设置为耐用 provider。注意，依赖它的 provider 也会变为耐用的。
 
 将 provider 设置为耐用 provider：
 
@@ -1488,7 +1561,7 @@ import { Injectable, Scope } from "@nestjs/common";
 export class CatsService {}
 ```
 
-或者在自定义 provider 中设置：
+或者对象语法：
 
 ```ts
 {
@@ -1499,7 +1572,7 @@ export class CatsService {}
 }
 ```
 
-我们可以将 DI 子树保存起来，并制定一个策略，当满足某种条件时，就使用之前创建过的 DI 子树，而不是新创建一个。在这个重用的 DI 子树中，耐用 provider 的实例会被重用，非耐用 provider 会被重新创建。
+我们可以将 DI 子树保存起来，并制定一个策略，当满足某种条件时，就使用之前创建过的 DI 子树，而不是新创建一个。在这个重用的 DI 子树中，全局 provider、耐用 provider 的实例会被重用，非耐用 provider 会被重新创建。
 
 声明这个策略需要实现 ContextIdStrategy 类，其中 attach 方法接受两个参数，第一个是当前的 contextId，第二个是请求对象。在 attach 方法中，我们根据请求头中的 tenantId 来查找缓存的 DI 子树的 contextId。attach 方法法返回一个函数，这个函数接受一个 HostComponentInfo 对象，返回一个新的 contextId。这个函数会在创建 DI 子树时调用，决定使用之前的还是新的 DI 实例。
 
@@ -1544,13 +1617,13 @@ ContextIdFactory.apply(new AggregateByTenantContextIdStrategy());
 
 两个类相互依赖时，就形成了循环依赖。
 
-当出现循环依赖时，会导致无限循环的问题（如果两个类相互依赖，那么它们会无限循环地初始化对方），所以应该尽量避免相互依赖的情况出现。
+这会导致无限循环的问题（如果两个类相互依赖，那么它们会无限循环地初始化对方），所以应该尽量避免相互依赖的情况出现。
 
-当相互依赖不可避免时，使用 forward reference 前向引用来避免循环依赖导致的问题。
+当相互依赖不可避免时，使用 `forward reference` 前向引用来避免循环依赖导致的问题。
 
 例如，类 A 需要类 B，而类 B 也需要类 A。这种情况下，由于两个类都还未完全定义，所以无法直接在一个类中引用另一个类。而前向引用允许我们在类的定义尚未完成时就引用它。这样，即使两个类互相依赖，我们也可以在一个类中引用另一个类。
 
-使用 @Inject() 装饰器和 forwardRef() 函数在类 A 中引用类 B，在类 B 中引用类 A。即双方都要使用 forwardRef() 函数引用对方。
+使用 `@Inject()` 装饰器和 `forwardRef()` 函数在类 A 中引用类 B，在类 B 中引用类 A。即双方都要使用 forwardRef() 函数引用对方。
 
 ```ts
 @Injectable()
@@ -1590,18 +1663,23 @@ export class CatsModule {}
 
 ### 模块引用
 
-可以通过注入 ModuleRef 来获取当前模块及其依赖的模块中的 provider、controller 以及任何可注入对象（如守卫、拦截器等）。之后统称为可注入对象。
+是什么？
+
+可以通过注入 `ModuleRef` 来获取当前模块及其依赖的模块中的 provider、controller 以及任何可注入对象（如守卫、拦截器等），而不需要在当前类中注入他们。
 
 ModuleRef 实例有一个 get 方法，接受可注入对象的令牌，检索当前所在模块及其依赖的模块中的可注入对象的实例并返回，而不需要手动注入他们。
 
-有什么用？
+这有什么用？
 
 这使得你可以在运行时动态地获取和使用提供者，而不需要在编译时就确定所有的依赖关系。这对于实现某些高级特性，如插件系统或动态模块，非常有用。
+
+#### ModuleRef#get 方法
 
 ```ts
 @Injectable()
 export class CatsService implements OnModuleInit {
   private service: Service;
+
   constructor(private moduleRef: ModuleRef) {}
 
   onModuleInit() {
@@ -1620,6 +1698,8 @@ export class CatsService implements OnModuleInit {
 this.moduleRef.get(Service, { strict: false });
 ```
 
+#### ModuleRef#resolve 方法
+
 使用 ModuleRef.resolve 方法获取请求和瞬态作用域可注入对象，其第一个参数和 get 方法一样。但其返回一个 Promise，解析值为可注入对象的实例。
 
 ```ts
@@ -1634,13 +1714,33 @@ export class CatsService implements OnModuleInit {
 }
 ```
 
-那 get 方法和 resolve 方法有什么区别？
+注意，每次调用 `ModuleRef.resolve` 方法都会创建一个新的 DI 子树并实例化 provider。这也意味着使用 resolve 方法多次获取同一个 provider 会创建多个实例。那如何解决？通过 resolve 方法的第二个参数。
+
+```ts
+@Injectable()
+export class CatsService implements OnModuleInit {
+  constructor(private moduleRef: ModuleRef) {}
+
+  async onModuleInit() {
+    const contextId = ContextIdFactory.create();
+    const transientServices = await Promise.all([
+      this.moduleRef.resolve(TransientService, contextId),
+      this.moduleRef.resolve(TransientService, contextId),
+    ]);
+    console.log(transientServices[0] === transientServices[1]); // true
+  }
+}
+```
+
+第二个参数接受一个 DI 子树的唯一标识符：`contextId`。我们使用 `ContextIdFactory.create` 方法创建了一个 `contextId` 也就是创建了一个 DI 子树。将这个 `contextId` 传入 `resolve` 方法，这样使用这个 `contextId` 的 `resolve` 方法就会使用这个 DI 子树，而不是创建一个新的 DI 子树。这样就能复用 provider 的实例了。
+
+#### 那 get 方法和 resolve 方法有什么区别？
 
 get 方法是同步的，它会从 IoC 容器中获取可注入对象的实例。resolve 方法是异步的，他会创建一个 DI 子树，并实例化可注入对象。
 
-对于全局作用域的 provider ，就用 get 方法。而请求和瞬态作用域的 provider 不存在于 IoC 容器中，所以使用 resolve 方法重新创建。对于全局和瞬态的 provider 都符合其作用域定义。但请求作用域的 provider 并没有获取到客户端请求时创建的实例，而是重新创建了一个实例。
+对于全局作用域的 provider ，就用 get 方法。而请求和瞬态作用域的 provider 不存在于 IoC 容器中，所以使用 `resolve` 方法重新创建。
 
-注意，每次调用 resolve 方法都会创建一个新的 DI 子树并实例化 provider。这也意味着使用 resolve 方法多次获取同一个 provider 会创建多个实例。
+对于全局和瞬态的 provider 这种做法都符合其作用域定义。但这种方法获取的请求作用域的 provider 并没有获取到客户端请求时创建的实例，而是重新创建了一个实例。
 
 那如何获取客户端请求时创建的 DI 子树上的请求作用域的实例，而不是创建一个新的呢？
 
@@ -1659,6 +1759,8 @@ const catsRepository = await this.moduleRef.resolve(CatsRepository, contextId);
 ```
 
 如果当前 provider 是全局作用域的，他会在程序初始化时实例化。其无法获取请求时的信息，如请求对象。所以无法实现。
+
+#### ModuleRef#create 方法
 
 那如果我们需要动态实例化一个没有注册为 provider 的类，可以使用 ModuleRef.create 方法。
 
@@ -1680,7 +1782,7 @@ export class CatsService implements OnModuleInit {
 
 Nest 通过 LazyModuleLoader 类实现模块的懒加载。
 
-它可以按照一般的方式注入到类中：
+它可以按照一般的方式注入到类中，而不是被其他模块引用：
 
 ```ts
 @Injectable()
@@ -1709,7 +1811,7 @@ const moduleRef = await this.lazyModuleLoader.load(() => LazyModule);
 
 注意，懒加载的模块在第一次加载以后就会被缓存。所以第二次加载时，不会再次加载。
 
-load 方法返回的模块的引用，可以通过 moduleRef.get 方法获取模块中的 provider。
+load 方法返回的模块的引用，可以通过上一个章节中模块引用的知识： moduleRef.get 方法获取模块中的 provider。
 
 ```ts
 const { LazyModule } = await import("./lazy.module");
@@ -1734,11 +1836,11 @@ const lazyService = moduleRef.get(LazyService);
 
 ### 执行上下文
 
-Nest 提供了一些使用的类，用于访问当前执行上下文的信息。
+Nest 提供了一些实用的类，用于访问当前执行上下文的信息。
 
 #### ArgumentsHost
 
-ArgumentsHost 类提供了获取传递给请求处理方法的参数的方法。在不同的环境下（如 HTTP、RPC、WebSockets、graphql）会传递不同的参数，所以想要获取这些参数，首先要为 ArgumentsHost 实例指定不同的环境。Nest 会在可能需要的地方提供 ArgumentsHost 实例，通常作为函数的参数存在。即不能主动获取。如异常过滤器的 catch 方法存在一个参数为 ArgumentsHost 实例。
+ArgumentsHost 类提供了获取传递给请求处理方法的参数的方法。在不同的环境下（如 HTTP、RPC、WebSockets、graphql）会传递不同的参数，所以想要获取这些参数，首先要为 ArgumentsHost 实例指定不同的环境。Nest 会在可能需要的地方提供 ArgumentsHost 实例，通常作为函数的参数存在，即不能主动获取。如异常过滤器的 catch 方法存在一个参数为 ArgumentsHost 实例。
 
 ```ts
 import { Catch, ArgumentsHost } from "@nestjs/common";
@@ -1924,6 +2026,8 @@ onModuleDestroy()、beforeApplicationShutdown() 和 onApplicationShutdown() 钩�
 
 #### 单元测试
 
+单元测试：测试单个类、方法的功能的测试。
+
 Nest 提供了开箱即用的 Jest 和 Supertest，用于编写单元测试和集成测试。还需要安装额外的 @nestjs/testing 包，它提供了模拟完整的 Nest 运行时环境的工具。
 
 ```ts
@@ -2054,3 +2158,23 @@ describe("Cats", () => {
 ```
 
 #### 测试请求作用域的实例
+
+在上面的端到端测试中，发起请求后，我们访问的 `catsService` 是一个 mock 对象。
+
+那如何获取真正的 `catsService` 实例呢？如果它是一个全局对象，那可以通过 `ModuleRef#get` 方法获取。
+
+那请求作用域的 provider 如何获取呢？ `ModuleRef#resolve` 方法。但这个实例不是请求时创建的 DI 子树上的实例。并且此时请求已经结束了，我们也不能通过 `ContextIdFactory#getByRequest` 方法获取请求时的 DI 子树进而获取实例。
+
+那如何获取真正的、在这次测试请求中创建的 catsService 对象呢？
+
+```ts
+const contextId = ContextIdFactory.create();
+jest.spyOn(ContextIdFactory, 'getByRequest').mockImplementation(() => contextId);
+```
+创建一个 contextId，并使用 jest 让每次调用 `ContextIdFactory.getByRequest` 方法返回的都是我们创建的 contextId。这样，模拟的请求创建的 DI 子树就是我们创建的 DI 子树。
+
+```ts
+catsService = await moduleRef.resolve(CatsService, contextId);
+```
+
+这样就可以在模拟请求结束后获取到这次请求作用域的 provider 了。
