@@ -1179,6 +1179,7 @@ class MyClass {
 详见执行上下文/ExecutionContext 的模块。
 
 自定义类、类方法装饰器分为两部分：
+
 1. 声明装饰器，将数据添加到方法的元数据上
 2. 声明守卫，获取元数据并报错。
 
@@ -2169,8 +2170,11 @@ describe("Cats", () => {
 
 ```ts
 const contextId = ContextIdFactory.create();
-jest.spyOn(ContextIdFactory, 'getByRequest').mockImplementation(() => contextId);
+jest
+  .spyOn(ContextIdFactory, "getByRequest")
+  .mockImplementation(() => contextId);
 ```
+
 创建一个 contextId，并使用 jest 让每次调用 `ContextIdFactory.getByRequest` 方法返回的都是我们创建的 contextId。这样，模拟的请求创建的 DI 子树就是我们创建的 DI 子树。
 
 ```ts
@@ -2178,3 +2182,214 @@ catsService = await moduleRef.resolve(CatsService, contextId);
 ```
 
 这样就可以在模拟请求结束后获取到这次请求作用域的 provider 了。
+
+## 技术
+
+### 版本管理
+
+版本管理能够在应用程序中运行多个版本的 controller 和路由。
+
+适合于路由变化后，仍需要支持上一个版本的情况。
+
+Nest 支持四种版本管理策略：
+
+- URL 版本管理：在请求的 URL 中传递版本。
+- 请求头版本管理：客户端在请求的请求头中，通过服务端指定的字段传递版本。
+- 媒体类型版本管理：客户端在请求的 `Accept` 请求头中，通过服务端指定的键传递版本。
+- 自定义版本控制：自定义版本控制策略。
+
+#### URL 版本管理
+
+在请求的 URL 中传递版本。例如 `https://example.com/v1/route` 和 `https://example.com/v2/route`。
+
+::: tip
+注意，版本号将自动添加到域名和全局路径前缀（如果有）后面，路由路径前面。
+:::
+
+启用 URL 版本管理：
+
+```ts 
+const app = await NestFactory.create(AppModule);
+
+// or "app.enableVersioning()"
+app.enableVersioning({
+  type: VersioningType.URI,
+});
+
+await app.listen(3000);
+```
+
+默认会像上面的例子一样，使用 `v` 作为前缀。使用 `prefix` 选项可以自定义前缀，设置值为 `false` 时，禁用前缀。
+
+```ts
+app.enableVersioning({
+  type: VersioningType.URI,
+  prefix: "version"
+});
+```
+
+#### 请求头版本管理
+
+客户端在请求的请求头中，通过服务端指定的字段传递版本。
+
+```ts
+const app = await NestFactory.create(AppModule);
+
+app.enableVersioning({
+  type: VersioningType.HEADER,
+  header: 'Custom-Header',
+});
+
+await app.listen(3000);
+```
+
+#### 媒体类型版本管理
+
+客户端在请求的 `Accept` 请求头中，通过服务端指定的键传递版本。
+
+```ts
+const app = await NestFactory.create(AppModule);
+
+app.enableVersioning({
+  type: VersioningType.MEDIA_TYPE,
+  key: 'v=',
+});
+
+await app.listen(3000);
+```
+
+客户端请求的请求头中的 `Accept` 字段可以为 `application/json;v=2`。
+
+#### 自定义版本控制
+
+自定义版本控制可以使用请求对象的任何方面来传递版本。相应地，我们需要自己定义一个提取器函数去分析传入的请求，这个函数需要返回一个字符串或字符串数组。
+
+如果请求者提供了多个版本，提取器函数可以返回一个字符串数组，它必须按照版本从大到小的顺序排序，Nest 将使用第一个版本，即最大的版本。如果最大的版本不存在，会查找下一个版本。如果找不到，或提取器函数返回了空字符串或空数组，这样匹配不到路由，Nest 会返回 404。
+
+::: warning
+由于设计限制，基于从提取器返回的数组选择最高匹配版本在Express适配器中并不可靠。单个版本（无论是字符串还是1个元素的数组）在Express中都能正常工作。Fastify正确地支持了最高匹配版本选择和单个版本选择。
+:::
+
+```ts
+const extractor = (request: FastifyRequest): string | string[] =>
+  [request.headers['custom-versioning-field'] ?? '']
+     .flatMap(v => v.split(','))
+     .filter(v => !!v)
+     .sort()
+     .reverse()
+
+const app = await NestFactory.create(AppModule);
+
+app.enableVersioning({
+  type: VersioningType.CUSTOM,
+  extractor,
+});
+
+await app.listen(3000);
+```
+
+提取器函数从请求头的 `custom-versioning-field` 字段中提取版本号。客户端应该在这个请求头中设置例如 `1,2,3` 这样的值。提取器会去除空值，并按照版本号从大到小排序。
+
+#### 为路由指定版本
+
+如果为应用程序启用了版本控制，但控制器或路由没有指定版本，那么对该控制器/路由的 **任何请求** 都将返回404响应状态，请求中不携带版本都不行。
+
+同样，如果收到包含没有对应控制器或路由的版本的请求，也将返回404响应状态。
+
+1. 为 controller 指定版本：会应用到所有的路由上。
+
+```ts
+@Controller({
+  version: '1',
+})
+export class CatsControllerV1 {
+  @Get('cats')
+  findAll(): string {
+    return 'This action returns all cats for version 1';
+  }
+}
+```
+
+2. 为路由指定版本：会覆盖 controller 的版本(如果有)。
+
+```ts
+import { Controller, Get, Version } from '@nestjs/common';
+
+@Controller()
+export class CatsController {
+  @Version('1')
+  @Get('cats')
+  findAllV1(): string {
+    return 'This action returns all cats for version 1';
+  }
+
+  @Version('2')
+  @Get('cats')
+  findAllV2(): string {
+    return 'This action returns all cats for version 2';
+  }
+}
+```
+
+3. 指定多版本：
+
+```ts
+@Controller({
+  version: ['1', '2'],
+})
+export class CatsController {
+  @Get('cats')
+  findAll(): string {
+    return 'This action returns all cats for version 1 or 2';
+  }
+}
+```
+
+4. 设置 “中立” 版本：有些路由不想要设置版本，可以使用 `VERSION_NEUTRAL` 符号。这样无论请求中发送的版本是什么，甚至如果请求根本不包含版本，都行。
+
+```ts
+import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
+
+@Controller({
+  version: VERSION_NEUTRAL,
+})
+export class CatsController {
+  @Get('cats')
+  findAll(): string {
+    return 'This action returns all cats regardless of version';
+  }
+}
+```
+
+5. 设置全局的默认版本：可以在应用程序级别设置默认版本，这样不需要在每个 controller 或 route 上设置版本。
+
+```ts
+app.enableVersioning({
+  // ...
+  defaultVersion: '1'
+  // or
+  defaultVersion: ['1', '2']
+  // or
+  defaultVersion: VERSION_NEUTRAL
+});
+```
+
+6. 将中间件应用到执行版本的路由：通过 `MiddlewareConsumer.forRoutes()` 方法的 `version` 选项。
+
+```ts
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { CatsModule } from './cats/cats.module';
+import { CatsController } from './cats/cats.controller';
+
+@Module({
+  imports: [CatsModule],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: 'cats', method: RequestMethod.GET, version: '2' });
+  }
+}
+```
