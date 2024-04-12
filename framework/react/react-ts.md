@@ -152,7 +152,7 @@ HTMLAttributes 是一个泛型接口，它的参数是一个 HTMLElement 的类�
 
 类似的，表单元素特有的属性和事件可以使用 `FormHTMLAttributes<HTMLFormELement>` `InputHTMLAttributes<HTMLInputElement>`、`ButtonHTMLAttributes<HTMLButtonElement>`。
 
-图片，ImgHTMLAttributes<HTMLImageElement>。
+图片，`ImgHTMLAttributes<HTMLImageElement>`。
 
 ## ComponentProps
 
