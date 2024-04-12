@@ -4,7 +4,7 @@
 
 1. TS 是什么？
 
-是 JS 的超集。超在哪？在 JS的基础上拓展了静态类型，完善了面向对象编程。
+是 JS 的超集。超在哪？在 JS 的基础上拓展了静态类型，完善了面向对象编程。
 
 1. 带来了什么优势？
 
@@ -42,9 +42,9 @@ any 类型：
 - 在严格模式下，隐式的 any 类型是不合法的
 
 ```tsx
-const a: any = 100
+const a: any = 100;
 
-a = "hello world"
+a = "hello world";
 ```
 
 unkonwn 类型：表示未知的类型。
@@ -56,30 +56,30 @@ unkonwn 类型：表示未知的类型。
 
 ```tsx
 function printLength(value: unknown) {
-    if (value instanceof Array || typeof value === 'string') {
-        console.log(value.length)
-    } else if (typeof value === 'number') {
-        console.log(value.toString().length);
-    }
+  if (value instanceof Array || typeof value === "string") {
+    console.log(value.length);
+  } else if (typeof value === "number") {
+    console.log(value.toString().length);
+  }
 }
 ```
 
 ### 基本类型
 
 ```tsx
-const a: string = "hello"
-const b: number = 123
-const c: boolean = true
-const d: null = null
-const e: undefined = undefined
+const a: string = "hello";
+const b: number = 123;
+const c: boolean = true;
+const d: null = null;
+const e: undefined = undefined;
 ```
 
 ```tsx
 // TS 拥有类型推断的能力，所以在值的类型明确的情况下，就不需要为变量显式指定类型。
-const a = "hello"
+const a = "hello";
 
 // 但在声明一个变量却不需要现在为其初始化时，就必须声明类型，否则会被推断为 any 类型。
-const a: string
+const a: string;
 ```
 
 ### 引用类型
@@ -89,21 +89,21 @@ const a: string
 在 JS 中，数组可以存储任意数量，任意类型的值。在 TS 中对数组作了限制。
 
 ```tsx
-const arr: string[] = ["hello", "world"] // 限制数组中值的类型
+const arr: string[] = ["hello", "world"]; // 限制数组中值的类型
 
-const arr2: Array<string> = ["hello", "world"] // 同上
+const arr2: Array<string> = ["hello", "world"]; // 同上
 
-const arr3: [string, number] = ["hello", 100] // 同时限制类型和数量，称为元组
+const arr3: [string, number] = ["hello", 100]; // 同时限制类型和数量，称为元组
 ```
 
 1. 对象：
 
 ```tsx
-const person: { name: string, age: number } = {
-    name: "kevin",
-    age: 20,
-    readonly sex: "man" // 只读属性
-}
+const person: { name: string; age: number } = {
+  name: "kevin",
+  age: 20,
+  sex: "man", // 只读属性
+};
 ```
 
 :::tip
@@ -123,13 +123,13 @@ const person: { name: string, age: number } = {
 // 为参数和返回值声明类型
 
 function plus(a: number, b: number): number {
-    return a + b;
+  return a + b;
 }
 
 // 没有返回值时，可以使用 void
 
 function printString(str: string): void {
-    console.log(str);
+  console.log(str);
 }
 ```
 
@@ -143,18 +143,18 @@ function printString(str: string): void {
 
 ```tsx
 interface IUser {
-    id: number;
-    name: string;
-    password: string;
+  id: number;
+  name: string;
+  password: string;
 }
 
 interface IPerson {
-    sex: string;
+  sex: string;
 }
 
 interface IAdmin extends IUser, IPerson {
-    loginKey: string;
-    level: number;
+  loginKey: string;
+  level: number;
 }
 ```
 
@@ -169,9 +169,9 @@ interface ITodo {
   isCompleted: boolean;
 }
 
-type TypeContent = ITodo['content'];  // string
+type TypeContent = ITodo["content"]; // string
 
-type TypeId = ITodo['id' | 'isCompleted']; // number | boolean
+type TypeId = ITodo["id" | "isCompleted"]; // number | boolean
 ```
 
 ### 枚举
@@ -192,9 +192,9 @@ const a: 100 | 200 = 100;
 
 ```tsx
 enum Color {
-    RED = 'red',
-    GREEN = 'green',
-    BLUE = 'blue'
+  RED = "red",
+  GREEN = "green",
+  BLUE = "blue",
 }
 
 const color: Color = Color.RED;
@@ -204,9 +204,9 @@ const color: Color = Color.RED;
 
 ```tsx
 enum Mode {
-    READ,
-    WRITE,
-    READ_WRITE
+  READ,
+  WRITE,
+  READ_WRITE,
 }
 
 // 在不赋值时，枚举中常量的值为从 0 开始的数字。
@@ -223,15 +223,15 @@ enum Mode {
 ```tsx
 const a: string | number = 1;
 
-const arr: (string | number)[] = [1, '2', 3];
+const arr: (string | number)[] = [1, "2", 3];
 
-const person: { name: string, parent: string | string[] } = {
-    name: 'tom',
-    parent: ['bob', 'alice']
-}
+const person: { name: string; parent: string | string[] } = {
+  name: "tom",
+  parent: ["bob", "alice"],
+};
 
 function printName(name: string | number): void {
-    console.log(name);
+  console.log(name);
 }
 
 // 甚至
@@ -239,7 +239,7 @@ function printName(name: string | number): void {
 type Type1 = { name: string };
 type Type2 = { age: number };
 
-let obj1: Type1 | Type2 = { name: 'John' };
+let obj1: Type1 | Type2 = { name: "John" };
 
 obj1 = { age: 25 };
 ```
@@ -248,12 +248,12 @@ keyof 操作符
 
 ```tsx
 const obj = {
-    a: 1,
-    b: 2
-}
+  a: 1,
+  b: 2,
+};
 
 for (let key in obj) {
-    console.log(obj[key]);    // 报错
+  console.log(obj[key]); // 报错
 }
 ```
 
@@ -263,11 +263,11 @@ for (let key in obj) {
 
 ```tsx
 type TypeObj = {
-    name: string;
-    age: number;
-}
+  name: string;
+  age: number;
+};
 
-const obj: keyof TypeObj = 'name';  // obj 的类型为 "name" | "age"
+const obj: keyof TypeObj = "name"; // obj 的类型为 "name" | "age"
 ```
 
 在此例子中，可以改为
@@ -276,7 +276,7 @@ const obj: keyof TypeObj = 'name';  // obj 的类型为 "name" | "age"
 type TypeObj = keyof typeof obj;
 
 for (let key in obj) {
-    console.log(obj[key as TypeObj]);
+  console.log(obj[key as TypeObj]);
 }
 ```
 
@@ -302,26 +302,26 @@ type TypeReturn<T> = T extends IA ? IA : IB;
 ```tsx
 // 数组
 
-type ArrayInfoType = string[];  // 字符串数组
+type ArrayInfoType = string[]; // 字符串数组
 
 const arr: ArrayInfoType = ["1", "2", "3"];
 
-type ArrayInfoType2 = [string, number, boolean?];  // 元组
+type ArrayInfoType2 = [string, number, boolean?]; // 元组
 
 const arr2: ArrayInfoType2 = ["1", 2];
 
 // 对象
 
 type PersonType = {
-    name: string;
-    age: number;
-    married?: boolean;  // 可选参数
-}
+  name: string;
+  age: number;
+  married?: boolean; // 可选参数
+};
 
 const person: PersonType = {
-    name: "kevin",
-    age: 20
-}
+  name: "kevin",
+  age: 20,
+};
 
 // 函数
 
@@ -335,9 +335,9 @@ const plus: FuncType = (a, b) => a + b;
 interface IA {}
 interface IB {}
 
-type TypeOne = IA
+type TypeOne = IA;
 
-type TypeObj = IA | IB
+type TypeObj = IA | IB;
 ```
 
 ```tsx
@@ -360,12 +360,12 @@ interface 是在声明类型并命名，type 只是在为类型起名。证据�
 
 非空断言：告诉 TS 编译器这个表达式的结果一定不为空（不为 null 或 undefined）。
 
-案例1:
+案例 1:
 
 ```tsx
 const str = localStorage.getItem("__str__");
 
-console.log(str.length) // ❌ str is possibly null
+console.log(str.length); // ❌ str is possibly null
 ```
 
 TS 编译器推断右侧表达式的结果的类型为 `string | null` ，而后我们需要按 string 类型进行处理时就会报错
@@ -375,7 +375,7 @@ TS 编译器推断右侧表达式的结果的类型为 `string | null` ，而后
 ```tsx
 const str = localStorage.getItem("__str__")!; // 第一种：直接为表达式做非空断言
 
-console.log(str!.length) // 第二种：为变量 str 做非空断言，只在这一次调用生效
+console.log(str!.length); // 第二种：为变量 str 做非空断言，只在这一次调用生效
 ```
 
 - 也可以使用类型断言告诉编译器 str 一定为 `string` 类型
@@ -386,16 +386,16 @@ const str = localStorage.getItem("__str__") as string;
 
 这只是强制改变编译器的类型判定，但当 str 真的为 null 时，程序就会报错。
 
-案例2:
+案例 2:
 
 ```html
 <canvas id="canvas"></canvas>
 ```
 
 ```tsx
-const oCan = document.querySelector('#canvas');
+const oCan = document.querySelector("#canvas");
 
-const ctx = oCan.getContext('2d')
+const ctx = oCan.getContext("2d");
 ```
 
 此时存在两个错误，一是编译器将 oCan 的类型推断为 `Element | null` ，null 是不存在方法可以调用的。二是即使使用了非空断言， Element 类型也不存在 getContext 方法。
@@ -403,20 +403,20 @@ const ctx = oCan.getContext('2d')
 此时可以使类型推断
 
 ```tsx
-const oCan = document.querySelector('#canvas') as HTMLCanvasElement;
+const oCan = document.querySelector("#canvas") as HTMLCanvasElement;
 ```
 
 注意！在对对象进行类型断言时，对象中的属性可以少但不能添加多余的属性。
 
 ```tsx
 interface ITest {
-    name: string;
+  name: string;
 }
 
-const a = {} as ITest;  // 合法
+const a = {} as ITest; // 合法
 
-const b = { name: 'kevin' } as ITest; // 合法
- 
+const b = { name: "kevin" } as ITest; // 合法
+
 const c = { age: 20 } as ITest; // 不合法
 ```
 
@@ -427,17 +427,17 @@ const c = { age: 20 } as ITest; // 不合法
 ```tsx
 // 函数声明式
 function arrToString<E>(arr: E[], separator: string): string {
-    return arr.join(separator);
+  return arr.join(separator);
 }
 
-arrToString<string>(["hello", "world"], ',');
+arrToString<string>(["hello", "world"], ",");
 
 // 箭头函数式
-const arrayToString = <E>(arr: E[], separator: string): string => {
-    return arr.join(separator);
-}
+const arrayToString = <E,>(arr: E[], separator: string): string => {
+  return arr.join(separator);
+};
 
-arrayToString<number>([1, 2, 3], ',');
+arrayToString<number>([1, 2, 3], ",");
 ```
 
 类型占位符可以是任意字符串，但常用大写字母表示：
@@ -452,18 +452,18 @@ arrayToString<number>([1, 2, 3], ',');
 
 ```tsx
 interface ITodo<T> {
-    id: number;
-    content: T;
+  id: number;
+  content: T;
 }
 
 const a: ITodo<string> = {
-    id: 1,
-    content: 'hello',
+  id: 1,
+  content: "hello",
 };
 
 const b: ITodo<number> = {
-    id: 2,
-    content: 123,
+  id: 2,
+  content: 123,
 };
 ```
 
@@ -474,7 +474,7 @@ class Todo<T> {
   id: number;
   content: T;
   completed: boolean;
-  
+
   constructor(id: number, content: T) {
     this.id = id;
     this.content = content;
@@ -498,30 +498,30 @@ type TypeReturn<T> = T extends IA ? IA : IB;
 反例：当我为泛型指定 number 类型时，value.length 是不合法的操作，所以会报错。
 
 ```tsx
-const getLength = <T>(value: T): number => {
-    return value.length;  // 报错
-}
+const getLength = <T,>(value: T): number => {
+  return value.length; // 报错
+};
 ```
 
-改正1：限制泛型可接受的类型。这里要求传给 T 的类型必须存在类型为 number 的 length 参数
+改正 1：限制泛型可接受的类型。这里要求传给 T 的类型必须存在类型为 number 的 length 参数
 
 ```tsx
 const getLength = <T extends { length: number }>(value: T): number => {
-    return value.length;
-}
+  return value.length;
+};
 ```
 
-改正2：对不同类型进行了处理，使传入什么类型都不会报错。
+改正 2：对不同类型进行了处理，使传入什么类型都不会报错。
 
 ```tsx
-const getLength = <T>(value: T): number => {
-    if (typeof value === 'string' || value instanceof Array) {
-        return value.length;
-    } else if (typeof value === 'number') {
-        return value.toString().length;
-    }
-    return 0;
-}
+const getLength = <T,>(value: T): number => {
+  if (typeof value === "string" || value instanceof Array) {
+    return value.length;
+  } else if (typeof value === "number") {
+    return value.toString().length;
+  }
+  return 0;
+};
 ```
 
 泛型和 type 一样，都是类型的一种代号，所以泛型不仅可以指定单类型，还可以指定联合类型。
@@ -531,14 +531,13 @@ const getLength = <T>(value: T): number => {
 （学的不好，考虑重学）
 
 ```tsx
-
 interface IProp {
-    length: number;
+  length: number;
 }
 
 const getLength = <T extends TypeProp>(value: T): number => {
-    return value.length;
-}
+  return value.length;
+};
 
 // 这里要求传给 T 的类型必须存在类型为 number 的 length 参数
 ```
@@ -546,13 +545,17 @@ const getLength = <T extends TypeProp>(value: T): number => {
 约束泛型为函数：
 
 ```tsx
-const getResult = <T>(a: number, b: number, fn: T) => {
-    return fn(a, b);     // error 因为 T 可能是任意类型
-}
+const getResult = <T,>(a: number, b: number, fn: T) => {
+  return fn(a, b); // error 因为 T 可能是任意类型
+};
 
-const getResult2 = <T extends (...args: any) => any>(a: number, b: number, fn: T) => {
-    return fn(a, b);     // 使用泛型约束规范了 T 必须是函数类型
-}
+const getResult2 = <T extends (...args: any) => any>(
+  a: number,
+  b: number,
+  fn: T
+) => {
+  return fn(a, b); // 使用泛型约束规范了 T 必须是函数类型
+};
 ```
 
 约束泛型为对象的键
@@ -566,13 +569,16 @@ interface ITodo {
 
 const todoObj: ITodo = {
   id: 1,
-  content: 'typescript',
-  completed: false
-}
+  content: "typescript",
+  completed: false,
+};
 
-const setTodo = <V extends ITodo[K], K extends keyof ITodo>(value: V, key: K) => {
+const setTodo = <V extends ITodo[K], K extends keyof ITodo>(
+  value: V,
+  key: K
+) => {
   todoObj[key] = value;
-}
+};
 
 // 约束 key 为 'id' | 'content' | 'completed'，约束 value 为 number | string | boolean
 ```
@@ -580,9 +586,9 @@ const setTodo = <V extends ITodo[K], K extends keyof ITodo>(value: V, key: K) =>
 泛型中的联合类型
 
 ```tsx
-type Bool<T> = T extends 'a' ? string : number;
+type Bool<T> = T extends "a" ? string : number;
 
-type Bool2 = Bool<'a' | 'b'>;  // string | number
+type Bool2 = Bool<"a" | "b">; // string | number
 ```
 
 相当于
@@ -594,7 +600,7 @@ Bool<'a'> | Bool<'b'> => string | number
 泛型中指定 never 类型时，无论泛型声明是什么，直接返回 never 类型
 
 ```tsx
-type Bool<T> = T extends 'a' ? string : number;
+type Bool<T> = T extends "a" ? string : number;
 
 type Bool2 = Bool<never>; // never
 ```
@@ -610,30 +616,30 @@ let a = undefined;
 
 a = 100;
 
-a = [1, 2, 3]
+a = [1, 2, 3];
 ```
 
 当一个函数接受类作为参数，并需要在函数体中实例化这个类时，参数的类型需要是类的构造器函数的类型。
 
 ```tsx
-type TypeDress = new(size: number, color: string) => Dress;
+type TypeDress = new (size: number, color: string) => Dress;
 
 interface IDress {
-    new(size: number, color: string): Dress;
+  new (size: number, color: string): Dress;
 }
 
 class Dress {
-    public size: number;
-    public color: string;
+  public size: number;
+  public color: string;
 
-    constructor(size: number, color: string) {
-        this.size = size;
-        this.color = color;
-    }
+  constructor(size: number, color: string) {
+    this.size = size;
+    this.color = color;
+  }
 }
 
 function getProduct(Product: TypeDress): Dress {
-    return new Product(12, 'red');
+  return new Product(12, "red");
 }
 
 // 这里参数的类型使用 TypeDress 或 IDress 都行
@@ -643,22 +649,22 @@ function getProduct(Product: TypeDress): Dress {
 
 因为 undefined 是不安全的。为什么不安全？
 
-undefined 是变量名合法的变量名。所以在使用 undefined 时可能会错误地使用到一个变量，而 `void 0` `void(0)` 或者 `void *` （*表示任意值）始终返回 undefined。
+undefined 是变量名合法的变量名。所以在使用 undefined 时可能会错误地使用到一个变量，而 `void 0` `void(0)` 或者 `void *` （\*表示任意值）始终返回 undefined。
 
 限制对象中的函数被单独调用
 
 ```tsx
 interface IUsers {
-    age: number;
-    getAge: (this: IUsers) => number;   // 通过为函数中 this 指定类型
+  age: number;
+  getAge: (this: IUsers) => number; // 通过为函数中 this 指定类型
 }
 
 const obj: IUsers = {
-    age: 24,
-    getAge() {
-        return this.age;
-    }
-}
+  age: 24,
+  getAge() {
+    return this.age;
+  },
+};
 
 const fn = obj.getAge;
 
@@ -667,12 +673,12 @@ fn(); // error
 
 object 类型与 Object 类型有什么区别？
 
-object 泛指引用类型。即任何引用类型都可以声明为 object  类型，但其范围太广用的很少。
+object 泛指引用类型。即任何引用类型都可以声明为 object 类型，但其范围太广用的很少。
 
 Object 表示???
 
-- [ ]  unkown、never类型
-- [ ]  什么时候显示声明，什么时候饮食
+- [ ] unkown、never 类型
+- [ ] 什么时候显示声明，什么时候饮食
 
 类型缩小
 
@@ -681,7 +687,7 @@ Object 表示???
 
 typeof 操作符
 
-在 TS 中，typeof xxx 不仅可以像JS一样用来获取类型字符串，如 ‘string’ ‘number’ 。
+在 TS 中，typeof xxx 不仅可以像 JS 一样用来获取类型字符串，如 ‘string’ ‘number’ 。
 
 在将其值用于类型操作时，可以用来获取变量的类型。
 
@@ -714,10 +720,9 @@ type TypeD = typeof 'hello' // error 不能用来获取值的类型。
 通过函数的类型获取其返回值的类型。
 
 ```tsx
-
 const plus = (a: number, b: number): number => a + b;
 
-type TypeA = ReturnType<typeof plus>  // number
+type TypeA = ReturnType<typeof plus>; // number
 ```
 
 ```tsx
@@ -764,7 +769,7 @@ class Person {
   public name: string;
   public age: number = 20; // 设置默认值
   public sex?: string; // 可选属性
-  public readonly parent: string[] = [] // 只读属性
+  public readonly parent: string[] = []; // 只读属性
 
   constructor(name: string, age: number, sex: string, parent: string[]) {
     this.name = name;
@@ -781,16 +786,23 @@ class Person {
 class Admin extends Person {
   public role: string;
 
-  constructor(name: string, age: number, sex: string, parent: string[], role: string) {
-    super(name, age, sex, parent);  // 子类的构造方法必须首先调用 super 方法
+  constructor(
+    name: string,
+    age: number,
+    sex: string,
+    parent: string[],
+    role: string
+  ) {
+    super(name, age, sex, parent); // 子类的构造方法必须首先调用 super 方法
     this.role = role;
   }
 
-  getName(): string { // 重写父类中的方法，属性、方法都可以重写
-    if (this.role === 'admin') {
-      return 'admin: ' + this.name;
+  getName(): string {
+    // 重写父类中的方法，属性、方法都可以重写
+    if (this.role === "admin") {
+      return "admin: " + this.name;
     }
-    return super.getName();   
+    return super.getName();
   }
 }
 
@@ -823,32 +835,32 @@ class Test {
 
 ```tsx
 abstract class Duck {
-  public abstract walk(): void;   // 可以声明为 public 和 protected 不能是 private
+  public abstract walk(): void; // 可以声明为 public 和 protected 不能是 private
   protected abstract swim(): void;
 }
 
 class Bird extends Duck {
-  name: string = 'kevin';
+  name: string = "kevin";
   walk() {
-    console.log('walking');
+    console.log("walking");
   }
   swim() {
-    console.log('swimming');
+    console.log("swimming");
   }
 }
 
 class Person extends Duck {
   age: number = 18;
   walk() {
-    console.log('walking');
+    console.log("walking");
   }
   swim() {
-    console.log('swimming');
+    console.log("swimming");
   }
 }
 
 const a: Duck = new Bird();
-const b: Duck = new Person(); 
+const b: Duck = new Person();
 
 // 虽然 Bird 类和 Person 类都有不同的成员，但其实例都能声明为 Duck 类型。这有什么用？？
 ```
@@ -878,7 +890,7 @@ extends 关键字不仅可以用于类与类之间的继承，还可以
 T extands { name: string }   // T 类型必须“包含”后面的类型
 
 // 条件类型
-type TestType<T> = T extands { name: string } ? IA : IB 
+type TestType<T> = T extands { name: string } ? IA : IB
 // T 类型“包含”后面的类型时返回 true
 ```
 
@@ -887,7 +899,7 @@ type TestType<T> = T extands { name: string } ? IA : IB
 Exclude：获取两个联合类型的差集
 
 ```tsx
-type TestType = Exclude<'a' | 'b', 'a'>  // 'b'
+type TestType = Exclude<"a" | "b", "a">; // 'b'
 ```
 
 源码
@@ -917,19 +929,18 @@ interface ITodo {
   completed: boolean;
 }
 
-type TestType = Pick<ITodo, 'id' | 'content'>  // { id: number, content: string }
+type TestType = Pick<ITodo, "id" | "content">; // { id: number, content: string }
 ```
 
 源码
 
 ```tsx
 type MyPick<T, U extends keyof T> = {
-  [Key in U]: T[Key]
-}
+  [Key in U]: T[Key];
+};
 ```
 
 在这个案例中 ：因为是拆解 T 类型的一部分，所以 U 类型必须是 T 的键的联合类型的子集 `id | content | completed` 。而 `[Key in U]: T[Key]` 则是将需要的部分声明为 T 中对应的类型。
-
 
 ## 类型工具
 
@@ -939,35 +950,34 @@ type MyPick<T, U extends keyof T> = {
 - 如果两个类型中有相同的属性，就继续取交集。同样，没有交集就。。。
 - 为了避免两个类型中相同属性的类型不一致，可以使用 `Omit<T, K>` 去除一个类型中的属性，再取交集。
 
-
 omit<T, K> 以一个类型为基础剔除某些属性，返回一个新类型。
 
 ```ts
 type Person = {
-    name: string;
-    age: string;
-    location: string;
+  name: string;
+  age: string;
+  location: string;
 };
 
-type PersonWithoutLocation = Omit<Person, 'location'>;
+type PersonWithoutLocation = Omit<Person, "location">;
 
 // PersonWithoutLocation equal to QuantumPerson
 type QuantumPerson = {
-    name: string;
-    age: string;
+  name: string;
+  age: string;
 };
 ```
 
 ```ts
 type Person = {
-    name: string;
-    age: string;
-    location: string;
+  name: string;
+  age: string;
+  location: string;
 };
 
 interface IPerson {
-    name: string;
-    age: string;
+  name: string;
+  age: string;
 }
 
 type PersonWithoutLocation = Omit<Person, keyof IPerson>;
@@ -975,33 +985,33 @@ type PersonWithoutLocation = Omit<Person, keyof IPerson>;
 
 ## 类型操作符
 
-- | 联合类型
-- & 交叉类型
-- as 类型断言 
-- typeof 和 instanceof 返回值的类型
-- keyof T 返回 T 的所有属性组成的联合类型
-- T[K] 返回类型 T 的 K 属性的类型
-- T extends U 泛型约束、条件类型
-- { [P in K]: T }，映射类型。将 K 中的每一个属性映射为 T 类型。例如，{ [P in keyof T]: boolean } 是一个新的类型，属性名都是 T 中的属性名，属性值都为 boolean。
-
+- `|` 联合类型
+- `&` 交叉类型
+- `as` 类型断言
+- `typeof` 和 `instanceof` 返回值的类型
+- `keyof T` 返回 T 的所有属性组成的联合类型
+- `T[K]` 返回类型 T 的 K 属性的类型
+- `T extends U` 泛型约束、条件类型
+- `{ [P in K]: T }`，映射类型。将 K 中的每一个属性映射为 T 类型。例如，`{ [P in keyof T]: boolean }` 是一个新的类型，属性名都是 T 中的属性名，属性值都为 boolean。
 
 ## 工具类型
 
-- Record<T, K> 返回一个键为 T 类型，值为 K 类型的对象类型。键可以为 number 类型
+- `Record<T, K>` 返回一个键为 T 类型，值为 K 类型的对象类型。键可以为 number 类型
 
-- Partial<T> 返回一个新类型，将 T 类型中的所有属性变为可选属性
-- Required<T> 返回一个新类型，将 T 类型中的所有属性变为必选属性
-- Readonly<T> 返回一个新类型，将 T 类型中的所有属性变为只读属性
+- `Partial<T>` 返回一个新类型，将 T 类型中的所有属性变为可选属性
+- `Required<T>` 返回一个新类型，将 T 类型中的所有属性变为必选属性
+- `Readonly<T>` 返回一个新类型，将 T 类型中的所有属性变为只读属性
 
-- Pick<T, K> 返回一个新类型，将 T 类型中满足 K 类型的属性组成新类型。K 通常是 T 的某些属性的联合类型。
-- Omit<T, K> 返回一个新类型，将 T 类型中满足 K 类型的属性去除。K 通常是 T 的某些属性的联合类型。
+- `Pick<T, K>` 返回一个新类型，将 T 类型中满足 K 类型的属性组成新类型。K 通常是 T 的某些属性的联合类型。
+- `Omit<T, K>` 返回一个新类型，将 T 类型中满足 K 类型的属性去除。K 通常是 T 的某些属性的联合类型。
 
 只用于联合类型：
-- Exclude<T, U> 返回一个新类型，将 T 类型中的 U 类型的属性去除
-- Extract<T, U> 返回一个新类型，将 T 类型中的 U 类型的属性提取出来
 
-- NonNullable<T> 返回一个新类型，将 T 类型中的 null 和 undefined 类型去除
+- `Exclude<T, U>` 返回一个新类型，将 T 类型中的 U 类型的属性去除
+- `Extract<T, U>` 返回一个新类型，将 T 类型中的 U 类型的属性提取出来
 
-- ReturnType<T> 泛型参数T必须是函数类型，返回一个新类型，将函数的返回值类型提取出来。
+- `NonNullable<T>` 返回一个新类型，将 T 类型中的 null 和 undefined 类型去除
 
-- InstanceType<T> 接受一个构造函数或类的类型，返回一个新类型，将构造函数的实例类型提取出来。类的类型通常可以使用 `typeof MyClass` 来获取。
+- `ReturnType<T>` 泛型参数 T 必须是函数类型，返回一个新类型，将函数的返回值类型提取出来。
+
+- `InstanceType<T>` 接受一个构造函数或类的类型，返回一个新类型，将构造函数的实例类型提取出来。类的类型通常可以使用 `typeof MyClass` 来获取。
