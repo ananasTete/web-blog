@@ -420,6 +420,27 @@ const b = { name: "kevin" } as ITest; // 合法
 const c = { age: 20 } as ITest; // 不合法
 ```
 
+常量断言：在变量初始化时使用，将一个变量的类型断言为其初始化的值，且是只读的。
+
+let 和 const 声明的变量的类型推断是不同的。因为 const 表示“常量”，所以在初始化时就会将变量的类型断言为其初始化的值。对于基本类型的值，会推断为值本身；对于引用类型的值如对象，其参数是可以修改的，所以并没有将参数的类型也推断为其初始化的值。
+
+```ts
+let a = "hello";  // a 的类型为 string
+const b = "hello";  // b 的类型为 "hello"
+
+let c = { name: "kevin" };  // c 的类型为 { name: string }
+const d = { name: "kevin" };  // d 的类型为 { name: string }
+```
+
+使用常量断言彻底将变量的类型断言为其初始化的值。如下 `e.name` 也不能修改了；使用 let 声明的变量也不能修改了。
+
+```ts
+const e = { name: 'kevin' } as const; // e 的类型为 { readonly name: 'kevin' } ;
+
+let a = 'hello' as const; // a 的类型为 'hello'
+```
+
+
 ## 泛型
 
 函数中的泛型：在声明函数时声明一个或多个类型占位符，在参数和返回值中把它当成一个类型来用；在调用函数时指定这个类型占位符的类型。
@@ -1015,3 +1036,37 @@ type PersonWithoutLocation = Omit<Person, keyof IPerson>;
 - `ReturnType<T>` 泛型参数 T 必须是函数类型，返回一个新类型，将函数的返回值类型提取出来。
 
 - `InstanceType<T>` 接受一个构造函数或类的类型，返回一个新类型，将构造函数的实例类型提取出来。类的类型通常可以使用 `typeof MyClass` 来获取。
+
+
+## 索引类型查询 `T[K]`
+
+它是对类型进行查询，不是对值。
+
+对于数组类型，可以获取数组的所有元素的类型组成的联合类型。
+
+```ts
+const arr = ['hello', 1];  // string | number[]
+type A = (typeof arr)[number]; // string | number
+```
+
+对于对象类型，可以将键作为索引值，获取对象中的值的类型。注意不能使用 `xx[string]` 来获取对象所有值的类型组成的联合类型。如有需求可以使用 Object.values 方法将值转为数组，再使用上面的方法。
+
+```ts
+const obj = { a: 1, b: 'hello' };
+type PropType = typeof obj['a'];  // number
+
+class MyClass {
+  x = 1;
+  y = 'hello';
+}
+type InstanceType = (typeof MyClass.prototype)['x'];  // number
+```
+
+从映射类型中获取：
+
+```ts
+type MapType = { [key: string]: number };
+type ValueType = MapType[string];  // number
+```
+
+这跟索引签名有什么关系？？？
