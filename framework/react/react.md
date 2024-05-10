@@ -7,7 +7,6 @@
 - react：react 的核心功能
 - react-dom：如将 react 元素渲染为真实 DOM
 - react-native：如调起相机、相册等
-- react-scripts：
 
 ### React 元素
 

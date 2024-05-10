@@ -44,10 +44,27 @@ function App() {
 
 ## useEffect
 
-1. 组件渲染完成回调 callback；依赖项变化导致组件更新，重新 **渲染完成后** 回调 callback ；组件卸载之前回调 callback 返回的函数（如果有）。
-2. callback 不能声明 async ，因为这样 callback 就会返回一个 Promise 对象。而 useEffect 需要 callback 返回一个函数或者 undefined (不返回值)。
-3. 使用原则：依赖项一定要在 callback 中被用到。如果没用到就是不合理的。
-4. useEffect 的 callback 是用于处理副作用，callback 返回的函数是用来清除副作用。如何理解？？什么是副作用？？ 副作用：组件渲染过程之外执行的操作，通常是与组件外部的交互。如网络请求、定时器、外部事件（窗口变化、鼠标事件）、DOM 操作。
+useEffect 是做什么的？
+
+是用来处理副作用的。
+
+什么是副作用？
+
+这一概念来自函数式编程，函数的副作用是指函数执行时对函数外部的状态产生影响。函数式编程要求尽可能地减少副作用，使函数的执行结果只依赖于输入参数，而不依赖于外部状态。这样可以提高代码的可维护性和可测试性。
+
+React 组件也设计为遵循函数式编程规范。 组件函数执行过程中任何对函数外部产生影响的操作都属于副作用，如网络请求、订阅事件（键盘事件、窗口大小等）等都属于副作用。 React 安排这些副作用在真实 DOM 渲染完成之后执行，这样就不会影响到 UI 的生成。
+
+回调执行时机：
+
+- 组件挂载到 DOM 上之后，执行。
+- 组件重渲染时，如果依赖项发生变化，会在渲染完成后执行。
+
+_依赖变化 -> 函数组件重新执行 -> DOM 渲染完成 -> useEffect 的 cleanup 函数执行（如果有） -> useEffect 的 setup 函数执行。_
+
+注意事项：
+
+1. callback 不能声明为 async 函数 ，因为这样 callback 就会返回一个 Promise 对象。而 useEffect 需要 callback 返回一个函数或者 undefined (不返回值)。所以要在 callback 内部声明一个 async 函数。
+2. 使用原则：依赖项一定要在 callback 中被用到。如果没用到就是不合理的。
 
 ## useMemo、memo、useCallback
 
@@ -193,7 +210,7 @@ function App() {
 
 每次都会打印最新的值，为什么？？？
 
-因为set Interval 回调包含了 a 的引用，a 变了，回调中的 a 也变了。
+因为 set Interval 回调包含了 a 的引用，a 变了，回调中的 a 也变了。
 
 那为什么上面的例子中，调用了 setCount ，但回调中的 count 没有变呢？？？
 
