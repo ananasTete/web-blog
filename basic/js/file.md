@@ -375,17 +375,111 @@ FileReader 对象的方法：
 - onloadstart: 加载开始
 - onprogress: 读取数据时定期触发。
 
+## input:file
+
+可以使用 `<input type="file">` 元素来让用户选择文件。
+
+### value 属性
+
+input 元素表示用户输入，都有 value 属性。input:file 元素当然也有，但是它的 value 属性是只读的，表示用户选择的文件的路径。
+
+- 如果用户没有选择文件，value 为空字符串。
+- 用户选择多个文件时，value 为第一个文件的路径。
+- 这个路径并不是文件在用户设备上的真实路径，而是一个虚拟路径，用于表示文件的名称。格式为 `C:\fakepath\filename`，无论是什么操作系统。如 `C:\fakepath\hello.txt`。
+
+### 独有属性
+
+除了 input 元素共享的的公共属性外，input:file 元素还有一些独有的属性。
+
+- accept：接受一个字符串，定义用户上传文件的类型。这个字符串应该是一个以逗号分隔的 _文件类型说明符_。
+- multiple：表示是否允许用户选择多个文件。默认为 false。
+- files：表示用户选择的文件列表。是一个 FileList 对象（类数组对象），每个元素都是一个 File 对象。
+
+:::tip
+accept 属性限制用户选择文件的类型，但无论在什么操作系统提供的文件上传窗口上，用户都可以解除这个限制，所以应该在上传处理程序中做文件类型检查。
+:::
+
+### 文件类型说明符
+
+- 不区分大小写的文件扩展名，以 `.` 开头。如 `.jpg`、`.png`、`.doc`。
+- MIME 类型字符串。如 `image/png`、`application/pdf`、`video/mp4`。
+- `video/*`、`audio/*`、`image/*` 表示所有视频、音频、图片类型。
+
+`input:accept` 属性可以接受一个或多个文件类型说明符，用逗号分隔。
+
+`<input type="file" accept="image/*,.pdf">` 表示只允许上传所有类型的图片和 pdf 类型文件。
+
+### 非标准属性
+
+- webkitdirectory：表示是否允许用户选择文件夹。默认为 false。
+  - 当设置为 true 时，用户只能选择文件夹，不能选择文件。
+  - 会上传文件夹内的所有文件，包括嵌套文件夹中的内容。
+  - 上传之后，File 对象的 webkitRelativePath 属性会有值，表示该文件对于这个文件夹的相对路径。
+
+这个属性目前在 safari on ios 和 firefox on android 上不受支持。
+
+### 事件
+
+change 事件：当用户选择文件后触发。
+cancel 事件：当用户上传之前上传过的文件时触发；通过文件上传窗口的取消按钮触发。
+
+```js
+const filePicker = document.getElementById("filePicker");
+
+filePicker.addEventListener("change", (event) => {
+  console.log(filePicker.files);
+});
+
+filePicker.addEventListener("cancel", (event) => {
+  console.log("cancel");
+});
+```
+
 ## 实战：用户上传文件
 
 用户可以通过 `input:file`、拖拽文件、在编辑框中粘贴文件三种方式上传文件。
 
 ### input:file
 
+关键点
+
+1. 通常不使用 input:file 元素的样式，因为其在不同浏览器上的样式不一致。我们可以将其设置为 `display: none`，然后使用一个任意 UI 来主动触发 input:file 的点击事件。
+
+2. accept 属性可以限制用户上传的文件类型，但用户可以在系统的文件选择窗口中解除这个限制。所以应该在上传处理程序中做文件类型检查。
+
+3. 使用 `URL.createObjectURL()` 方法将 File 对象转换为 URL，然后将这个 URL 赋值给一个 img 元素的 src 属性，就可以预览图片。
+
+[实战：input:file 上传文件](https://codesandbox.io/p/devbox/simple-upload-file-26tk7f)
+
+### 拖拽上传
+
+xxx
+
+## 实战：大文件切片上传
+
+用户上传文件 -> 上传服务器
+
+为什么要切片上传？
+
+因为文件过大上传时间过长，and xxx
+
+如何实现？
+
+利用 slice 方法将文件切割成指定大小的块，然后发起多个网络请求，并发上传。后端接收到这些块后，再按顺序合并成一个完整的文件。
+
+关键点：
+
+1. 如何实现上传文件数据。
+
+2. 并发上传到后端后，后端如何知道所有切片上传完成，如何按顺序合并文件。
+
+实现：
+
+HTML5 中新增的 `FormData` 对象，可以方便地将表单数据和文件一起发送到服务器。
+
 ## 实战：在线预览文件
 
 ## 实战：从服务端下载文件
-
-## 实战：大文件上传
 
 # Stream API
 
@@ -414,3 +508,7 @@ Stream API 是一种用于处理流数据的 API。它提供了一种机制，�
 通常用于处理视频、图片、文本文件等资源。如图像的逐渐加载，视频的逐渐播放。
 
 总的来说，任何你需要逐块处理数据，而不是一次性处理所有数据的场景，都可以考虑使用流。
+
+```
+
+```
