@@ -290,7 +290,7 @@ type TypeReturn<T> = T extends IA ? IA : IB;
 
 ## 类型别名
 
-:::tip
+::: tip
 一般使用 interface 为对象声明类型。而其它引用值（数组、函数）的类型，以及联合类型、条件类型如果需要抽取的话，则使用 type。
 即对象使用 interface ；其他有需要就使用 type 。
 :::
